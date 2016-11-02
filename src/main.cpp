@@ -51,8 +51,19 @@ int main(int argc, char * argv[])
 			OPCUA_Client * client = new OPCUA_Client(
 				gateway_settings["ua_servers_config"][i]["endpoint"].get<std::string>(),
 				gateway_settings["ua_servers_config"][i]["username"].get<std::string>(),
-				gateway_settings["ua_servers_config"][i]["password"].get<std::string>()
+				gateway_settings["ua_servers_config"][i]["password"].get<std::string>(),
+				gateway_settings["ua_servers_config"][i]["id"].get<int32_t>()
 			);
+
+			// Subscribe to all target namespaces / nodes
+			size_t n_subscriptions = gateway_settings["ua_servers_config"][i]["subscriptions"].size();
+			for (size_t j = 0; j < n_subscriptions; j++)
+			{
+				client->subscribeToAll(
+					gateway_settings["ua_servers_config"][i]["subscriptions"][j]["ns_index"].get<uint16_t>(),
+					&gateway_settings["ua_servers_config"][i]["subscriptions"][j]["identifier"].get<std::string>()[0u]
+				);
+			}
 
 			// Push the client into clients vector
 			gateway_clients.push_back(client);

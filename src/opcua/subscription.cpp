@@ -5,8 +5,8 @@
 namespace gateway
 {
 
-	void OPCUA_Callback_NodeValueChanged(
-		UA_UInt32 node_id,
+	void OPCUA_Callback_MonitoredItem(
+		UA_UInt32 monId,
 		UA_DataValue * value,
 		void * context
 	)
@@ -15,26 +15,27 @@ namespace gateway
 
 	OPCUA_Subscription::OPCUA_Subscription(
 		UA_Client * client,
-		uint32_t id,
-		uint32_t nodeId,
+		UA_NodeId * nodeId,
 		int32_t serverId
 	) :
 		m_client(client),
-		m_id(id),
+		m_status(UA_STATUSCODE_GOOD),
+		m_id(0),
 		m_nodeId(nodeId),
+		m_monitoredItemId(0),
 		m_serverId(serverId)
 	{
-		UA_Client_Subscriptions_new(m_client, UA_SubscriptionSettings_standard, &m_id);
+		m_status = UA_Client_Subscriptions_new(m_client, UA_SubscriptionSettings_standard, &m_id);
 
-		if (m_id == false)
-			ERR("OPCUA_Subscription something went wrong while creating the object.");
+		if (m_status != UA_STATUSCODE_GOOD)
+			throw std::exception("OPCUA_Subscription something went wrong while creating the object.");
 
-		UA_StatusCode status = UA_Client_Subscriptions_addMonitoredItem(m_client, m_id, UA_NODEID_STRING(0, "test"), UA_ATTRIBUTEID_VALUE, &OPCUA_Callback_NodeValueChanged, (void *) this, &m_nodeId);
+		m_status = UA_Client_Subscriptions_addMonitoredItem(m_client, m_id, *m_nodeId, UA_ATTRIBUTEID_VALUE, &OPCUA_Callback_MonitoredItem, (void *) this, &m_monitoredItemId);
 
-		if (status == UA_STATUSCODE_GOOD)
-			LOG("OPCUA_Subscription was created. Id: %d, ServerId: %d\n", UA_DateTime_now(), m_id, m_serverId);
-		else
-			ERR("OPCUA_Subscription something went wrong while creating the subscription link.");
+		if (m_status != UA_STATUSCODE_GOOD)
+			throw std::exception("OPCUA_Subscription something went wrong while creating the subscription link.");
+
+		LOG("OPCUA_Subscription was created. Id: %d, ServerId: %d\n", UA_DateTime_now(), m_id, m_serverId);
 	}
 
 	OPCUA_Subscription::~OPCUA_Subscription()
@@ -56,14 +57,24 @@ namespace gateway
 		return m_client;
 	}
 
+	UA_StatusCode OPCUA_Subscription::getStatus() const
+	{
+		return m_status;
+	}
+
+	UA_NodeId * OPCUA_Subscription::getNodeId()
+	{
+		return m_nodeId;
+	}
+
 	uint32_t OPCUA_Subscription::getId() const
 	{
 		return m_id;
 	}
 
-	uint32_t OPCUA_Subscription::getNodeId()
+	uint32_t OPCUA_Subscription::getMonitoredItemId() const
 	{
-		return m_nodeId;
+		return m_monitoredItemId;
 	}
 
 	int32_t OPCUA_Subscription::getServerId() const
