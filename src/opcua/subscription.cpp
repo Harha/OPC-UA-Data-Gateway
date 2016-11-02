@@ -25,6 +25,8 @@ namespace gateway
 		m_monitoredItemId(0),
 		m_serverId(serverId)
 	{
+		LOG("OPCUA_Subscription serverId(%d) initializing...\n", UA_DateTime_now(), m_serverId);
+
 		m_status = UA_Client_Subscriptions_new(m_client, UA_SubscriptionSettings_standard, &m_id);
 
 		if (m_status != UA_STATUSCODE_GOOD)

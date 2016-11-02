@@ -10,9 +10,23 @@
       "username": "",
       "password": "",
       "subscriptions": [
+      ]
+    },
+    {
+      "id": 1,
+      "endpoint": "opc.tcp://Harha-Laptop:48050",
+      "username": "",
+      "password": "",
+      "subscriptions": [
         {
+          "is_folder": true,
+          "ns_index": 1,
+          "identifier": "ThisIsAFolderSub"
+        },
+        {
+          "is_folder": false,
           "ns_index": 0,
-          "identifier": "MyDevice"
+          "identifier": "sensor1"
         }
       ]
     }

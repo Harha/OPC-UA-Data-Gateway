@@ -41,10 +41,10 @@ namespace gateway
 		m_serverId(serverId),
 		m_subscriptions()
 	{
+		LOG("OPCUA_Client serverId(%d) initializing... endpoint URL: %s\n", UA_DateTime_now(), m_serverId, m_endpoint.c_str());
+
 		// Create UA_Client instance
 		m_client = UA_Client_new(UA_ClientConfig_standard);
-
-		LOG("OPCUA_Client id(%d) initializing... endpoint URL: %s\n", UA_DateTime_now(), m_serverId, m_endpoint.c_str());
 
 		// Attempt to connect to the target endpoint
 		if (username.empty())
@@ -64,25 +64,28 @@ namespace gateway
 		{
 			UA_Client_delete(m_client);
 
-			LOG("OPCUA_Client was destroyed. Endpoint URL: %s", UA_DateTime_now(), m_endpoint.c_str());
+			LOG("OPCUA_Client serverId(%d) was destroyed. Endpoint URL: %s", UA_DateTime_now(), m_serverId, m_endpoint.c_str());
 		}
 	}
 
 	void OPCUA_Client::update()
 	{
-
+		UA_Client_Subscriptions_manuallySendPublishRequest(m_client);
 	}
 
 	void OPCUA_Client::subscribeToAll(uint16_t nsIndex, char * identifier)
 	{
 		m_status = UA_Client_forEachChildNodeCall(m_client, UA_NODEID_STRING(nsIndex, identifier), &OPCUA_Callback_NodeIterator, (void *) this);
 
-		LOG("OPCUA_Client id(%d) subscribeToAll %d: %s", UA_DateTime_now(), m_serverId, nsIndex, identifier);
+		LOG("OPCUA_Client serverId(%d) subscribeToAll %d: %s", UA_DateTime_now(), m_serverId, nsIndex, identifier);
 	}
 
 	void OPCUA_Client::subscribeToOne(uint16_t nsIndex, char * identifier)
 	{
-		throw std::exception("not implemented");
+		OPCUA_Subscription * sub = new OPCUA_Subscription(m_client, &UA_NODEID_STRING(nsIndex, identifier), m_serverId);
+		m_subscriptions.push_back(sub);
+
+		LOG("OPCUA_Client serverId(%d) subscribeToOne %d: %s", UA_DateTime_now(), m_serverId, nsIndex, identifier);
 	}
 
 	std::string OPCUA_Client::getEndpoint() const

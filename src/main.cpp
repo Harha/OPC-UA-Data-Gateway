@@ -59,10 +59,26 @@ int main(int argc, char * argv[])
 			size_t n_subscriptions = gateway_settings["ua_servers_config"][i]["subscriptions"].size();
 			for (size_t j = 0; j < n_subscriptions; j++)
 			{
-				client->subscribeToAll(
-					gateway_settings["ua_servers_config"][i]["subscriptions"][j]["ns_index"].get<uint16_t>(),
-					&gateway_settings["ua_servers_config"][i]["subscriptions"][j]["identifier"].get<std::string>()[0u]
-				);
+				bool isFolder = gateway_settings["ua_servers_config"][i]["subscriptions"][j]["is_folder"].get<bool>();
+				uint16_t nsIndex = gateway_settings["ua_servers_config"][i]["subscriptions"][j]["ns_index"].get<uint16_t>();
+				std::string identifier = gateway_settings["ua_servers_config"][i]["subscriptions"][j]["identifier"].get<std::string>();
+
+				if (isFolder == false)
+				{
+					// Single subscription
+					client->subscribeToOne(
+						nsIndex,
+						&identifier[0u]
+					);
+				}
+				else
+				{
+					// Subscribe to all childs of this node
+					client->subscribeToAll(
+						nsIndex,
+						&identifier[0u]
+					);
+				}
 			}
 
 			// Push the client into clients vector
