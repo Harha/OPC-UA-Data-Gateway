@@ -22,7 +22,7 @@ namespace gateway
 		// Create UA_Client instance
 		m_client = UA_Client_new(UA_ClientConfig_standard);
 
-		LOG("OPCUA_Client initilaizing... endpoint URL: %s\n", UA_DateTime_now(), m_endpoint.c_str());
+		LOG("OPCUA_Client initializing... endpoint URL: %s\n", UA_DateTime_now(), m_endpoint.c_str());
 
 		// Attempt to connect to the target endpoint
 		if (username.empty())
@@ -49,6 +49,18 @@ namespace gateway
 	void OPCUA_Client::update()
 	{
 
+	}
+
+	void OPCUA_Client::subscribeToAll(uint16_t nsIndex, const std::string & identifier)
+	{
+		// Function below will probably be used for subbing all childs of target node
+		// UA_Client_forEachChildNodeCall
+		throw std::exception("not implemented");
+	}
+
+	void OPCUA_Client::subscribeToOne(uint16_t nsIndex, const std::string & identifier)
+	{
+		throw std::exception("not implemented");
 	}
 
 	std::string OPCUA_Client::getEndpoint() const

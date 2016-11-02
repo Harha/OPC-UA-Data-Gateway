@@ -25,6 +25,8 @@ namespace gateway
 		);
 		~OPCUA_Client();
 		void update();
+		void subscribeToAll(uint16_t nsIndex = 0, const std::string & identifier = "");
+		void subscribeToOne(uint16_t nsIndex = 0, const std::string & identifier = "");
 		std::string getEndpoint() const;
 		std::string getUsername() const;
 		std::string getPassword() const;

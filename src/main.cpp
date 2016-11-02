@@ -37,7 +37,7 @@ int main(int argc, char * argv[])
 	settings >> gateway_settings;
 	settings.close();
 
-	// Configure the OPC UA client
+	// Configure stuff
 	OPCUA_SubscriptionSettings.requestedPublishingInterval = gateway_settings["ua_client_config"]["sub_publish_interval"].get<UA_Double>();
 	OPCUA_SubscriptionSettings.priority = gateway_settings["ua_client_config"]["sub_publish_priority"].get<UA_Byte>();
 
