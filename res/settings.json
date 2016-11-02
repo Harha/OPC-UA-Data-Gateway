@@ -1,0 +1,27 @@
+{
+  "ua_client_config": {
+    "sub_publish_interval": 100,
+    "sub_publish_priority": 1
+  },
+  "ua_servers_config": [
+    {
+      "endpoint": "opc.tcp://harha.us.to:48050",
+      "username": "",
+      "password": "",
+      "subscriptions": [
+        {
+          "identifier": "MAIN.status",
+          "ns_idx": 6
+        },
+        {
+          "identifier": "MAIN.blinker",
+          "ns_idx": 6
+        },
+        {
+          "identifier": "MAIN.ticks",
+          "ns_idx": 6
+        }
+      ]
+    }
+  ]
+}

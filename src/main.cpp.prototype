@@ -1,0 +1,222 @@
+// ----------------------------------------------------------------------------
+// OPC UA IoT Gateway client
+// Author: Harha
+// License: MIT
+// 3rd Party libraries: Open62541, nlohmann::json
+// ----------------------------------------------------------------------------
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <thread>
+#include <open62541.h>
+#include "3rdparty/json.hpp"
+#include "macros.h"
+
+// For convenience with the nlohmann::json library
+using json = nlohmann::json;
+
+// ----------------------------------------------------------------------------
+// OPC UA Client class: UA_Subscription
+// ----------------------------------------------------------------------------
+struct UA_Subscription
+{
+	UA_Client * client;
+	UA_UInt16 server_id;
+	UA_UInt32 sub_id;
+	UA_UInt32 node_id;
+	UA_UInt16 node_nsIdx;
+	UA_String node_identifier;
+
+	UA_Subscription(
+		UA_Client * client = nullptr,
+		UA_UInt16 server_id = 0,
+		UA_UInt32 sub_id = 0,
+		UA_UInt32 node_id = 0,
+		UA_UInt16 node_nsIdx = 0,
+		UA_String node_identifier = UA_String_fromChars("NULL")
+	) :
+		client(client),
+		server_id(server_id),
+		sub_id(sub_id),
+		node_id(node_id),
+		node_nsIdx(node_nsIdx),
+		node_identifier(node_identifier)
+	{
+
+	}
+};
+
+// ----------------------------------------------------------------------------
+// OPC UA Client objects & state variables
+// ----------------------------------------------------------------------------
+static std::vector<UA_Client *> ua_clients;
+static std::vector<UA_Subscription *> ua_subscriptions;
+static UA_StatusCode ua_status;
+static json ua_settings;
+
+static UA_SubscriptionSettings UA_SubscriptionSettings_custom = {
+	100.0,	// requestedPublishingInterval
+	10000,	// requestedLifetimeCount
+	1,		// requestedMaxKeepAliveCount
+	10,		// maxNotificationsPerPublish
+	true,	// publishingEnabled
+	1		// priority
+};
+
+// ----------------------------------------------------------------------------
+// OPC UA Client function: Subscription value change callback
+// ----------------------------------------------------------------------------
+void UA_Callback_NodeValueChanged(
+	UA_UInt32 node_id,
+	UA_DataValue * value,
+	void * context
+)
+{
+	// Get the context object
+	UA_Subscription * sub = (UA_Subscription *)context;
+
+	// Get DateTime from value and extract information from it
+	UA_DateTime datetime = value->sourceTimestamp;
+
+	// Log message start
+	LOG("NodeValueChanged - ServerId: %02u, Identifier: %16s, ", datetime, sub->server_id, sub->node_identifier.data);
+
+	if (value->hasValue)
+	{
+		switch (value->value.type->typeIndex)
+		{
+		case (UA_TYPES_BOOLEAN):
+			printf("Value: %s\n", *(UA_Boolean *)value->value.data == UA_TRUE ? "true" : "false");
+			break;
+		case (UA_TYPES_INT16):
+		case (UA_TYPES_INT32):
+		case (UA_TYPES_INT64):
+			printf("Value: %d\n", *(UA_Int16 *)value->value.data);
+			break;
+		case (UA_TYPES_FLOAT):
+			printf("Value: %.5f\n", *(UA_Float *)value->value.data);
+			break;
+		}
+	}
+}
+
+// ----------------------------------------------------------------------------
+// OPC UA Client function: Create UA_Subscription
+// ----------------------------------------------------------------------------
+void UA_InitSubscription(
+	UA_Client * client,
+	UA_Subscription & sub,
+	const UA_NodeId nodeId,
+	const UA_SubscriptionSettings & settings = UA_SubscriptionSettings_custom
+)
+{
+	// Set subscription client pointer
+	sub.client = client;
+
+	// Create new subscription object
+	ua_status = UA_Client_Subscriptions_new(client, settings, &sub.sub_id);
+
+	// Check if it's valid
+	if (sub.sub_id)
+		printf("UA_InitSubscription success. Sub id: %u\n", sub.sub_id);
+
+	// Subscribe for the target nodeId
+	ua_status = UA_Client_Subscriptions_addMonitoredItem(client, sub.sub_id, nodeId, UA_ATTRIBUTEID_VALUE, &UA_Callback_NodeValueChanged, (void *)&sub, &sub.node_id);
+
+	sub.node_nsIdx = nodeId.namespaceIndex;
+	sub.node_identifier = nodeId.identifier.string;
+
+	// Check if all went well
+	if (sub.node_id)
+		printf("UA_InitSubscription success. NodeNsIdx: %u, NodeIdentifier: %s\n", sub.node_nsIdx, sub.node_identifier.data);
+}
+
+int main(int argc, char * argv[])
+{
+	// Read settings from JSON file into settings
+	std::ifstream settings("./res/settings.json", std::ifstream::binary);
+
+	// Exit if the file doesn't exist
+	if (settings.is_open() == false)
+	{
+		printf("Error: Cannot find settings.json from ./res/ folder. Please make sure it exists.");
+		return -1;
+	}
+
+	// Populate ua_settings with the contents of the JSON file and close the file afterwards
+	settings >> ua_settings;
+	settings.close();
+
+	// Initialize the UA SubscriptionConfig
+	UA_SubscriptionSettings_custom.requestedPublishingInterval = ua_settings["ua_client_config"]["subscription_publish_interval"].get<UA_Double>();
+	UA_SubscriptionSettings_custom.priority = ua_settings["ua_client_config"]["subscription_publish_priority"].get<UA_Byte>();
+
+	// Initialize all clients & connections
+	size_t n_servers = ua_settings["ua_servers_list"].size();
+
+	for (size_t i = 0; i < n_servers; i++)
+	{
+		// Create the OPC UA client
+		UA_Client * client = UA_Client_new(UA_ClientConfig_standard);
+
+		// Attempt to connect to the target endpoint, skip this item if it fails
+		ua_status = UA_Client_connect(client, ua_settings["ua_servers_list"][i]["endpoint"].get<std::string>().c_str());
+		if (ua_status != UA_STATUSCODE_GOOD)
+			continue;
+
+		// Create subscriptions
+		size_t n_subscriptions = ua_settings["ua_servers_list"][i]["subscriptions"].size();
+		for (size_t j = 0; j < n_subscriptions; j++)
+		{
+			// Initialize the subscription object
+			UA_Subscription * subscription = new UA_Subscription;
+			UA_InitSubscription(
+				client,
+				*subscription,
+				UA_NODEID_STRING(
+					ua_settings["ua_servers_list"][i]["subscriptions"][j]["ns_idx"].get<UA_UInt16>(),
+					_strdup(ua_settings["ua_servers_list"][i]["subscriptions"][j]["identifier"].get<std::string>().c_str())
+				)
+			);
+
+			// Set server_id for subscription
+			subscription->server_id = (UA_UInt16)i;
+
+			// Insert the subscription into subscriptions vector
+			ua_subscriptions.push_back(subscription);
+		}
+
+		// Insert the client into the clients vector
+		ua_clients.push_back(client);
+	}
+
+	// Main loop, update stuff, exit if an error occurs
+	while (ua_status == UA_STATUSCODE_GOOD)
+	{
+		// Iterate through all clients
+		for (UA_Client * c : ua_clients)
+		{
+			// Request publish info from all subscriptions
+			UA_Client_Subscriptions_manuallySendPublishRequest(c);
+		}
+
+		// Sleep for a bit, because why not?
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
+
+	// Cleanup subscriptions before exit
+	for (UA_Subscription * sub : ua_subscriptions)
+	{
+		UA_Client_Subscriptions_remove(sub->client, sub->sub_id);
+		DELETES(sub);
+	}
+
+	// Cleanup clients before exit
+	for (size_t i = 0; i < n_servers; i++)
+	{
+		UA_Client_delete(ua_clients[i]);
+	}
+
+	return ua_status;
+}
