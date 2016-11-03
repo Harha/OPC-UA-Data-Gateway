@@ -23,6 +23,11 @@ namespace gateway
 		{
 			switch (value->value.type->typeIndex)
 			{
+			case UA_TYPES_BOOLEAN:
+			{
+				LOG("ServerId: %d, Identifier: %16s, NsIndex: %d, Value: %s\n", datetime, sub->getServerId(), sub->getIdentifier().c_str(), sub->getNsIndex(), *(UA_Boolean *)value->value.data == UA_TRUE ? "true" : "false");
+			}
+			break;
 			case UA_TYPES_INT16:
 			case UA_TYPES_INT32:
 			case UA_TYPES_INT64:
@@ -53,7 +58,7 @@ namespace gateway
 		m_monitoredItemId(0),
 		m_serverId(serverId)
 	{
-		LOG("OPCUA_Subscription init. Id: %d, Identifier: %s, ServerId: %d\n", UA_DateTime_now(), m_id, m_identifier.c_str(), m_serverId);
+		LOG("OPCUA_Subscription init. Identifier: %s, ServerId: %d\n", UA_DateTime_now(), m_identifier.c_str(), m_serverId);
 
 		m_status = UA_Client_Subscriptions_new(m_client, *OPCUA_SubscriptionSettings, &m_id);
 
@@ -65,7 +70,7 @@ namespace gateway
 		if (m_status != UA_STATUSCODE_GOOD)
 			throw std::exception("OPCUA_Subscription something went wrong while creating the subscription link.");
 
-		LOG("OPCUA_Subscription was created.\n");
+		LOG("OPCUA_Subscription was created. Id: %d\n", UA_DateTime_now(), m_id);
 	}
 
 	OPCUA_Subscription::~OPCUA_Subscription()
