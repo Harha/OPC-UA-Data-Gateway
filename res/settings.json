@@ -11,19 +11,9 @@
       "password": "",
       "subscriptions": [
         {
-          "is_folder": false,
+          "is_folder": true,
           "ns_index": 6,
-          "identifier": "MAIN.sine"
-        },
-        {
-          "is_folder": false,
-          "ns_index": 6,
-          "identifier": "MAIN.ticks"
-        },
-        {
-          "is_folder": false,
-          "ns_index": 6,
-          "identifier": "MAIN.t"
+          "identifier": "MAIN"
         }
       ]
     }

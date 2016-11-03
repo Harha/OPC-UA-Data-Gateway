@@ -27,12 +27,12 @@ namespace gateway
 			case UA_TYPES_INT32:
 			case UA_TYPES_INT64:
 			{
-				LOG("Identifier: %16s, NsIndex: %d, Value: %d\n", datetime, sub->getIdentifier().c_str(), sub->getNsIndex(), *(UA_Int64 *)value->value.data);
+				LOG("ServerId: %d, Identifier: %16s, NsIndex: %d, Value: %d\n", datetime, sub->getServerId(), sub->getIdentifier().c_str(), sub->getNsIndex(), *(UA_Int64 *)value->value.data);
 			}
 			break;
 			case UA_TYPES_FLOAT:
 			{
-				LOG("Identifier: %16s, NsIndex: %d, Value: %.5f\n", datetime, sub->getIdentifier().c_str(), sub->getNsIndex(), *(UA_Float *)value->value.data);
+				LOG("ServerId: %d, Identifier: %16s, NsIndex: %d, Value: %.5f\n", datetime, sub->getServerId(), sub->getIdentifier().c_str(), sub->getNsIndex(), *(UA_Float *)value->value.data);
 			}
 			break;
 			}
@@ -53,7 +53,7 @@ namespace gateway
 		m_monitoredItemId(0),
 		m_serverId(serverId)
 	{
-		LOG("OPCUA_Subscription serverId(%d) initializing...\n", UA_DateTime_now(), m_serverId);
+		LOG("OPCUA_Subscription init. Id: %d, Identifier: %s, ServerId: %d\n", UA_DateTime_now(), m_id, m_identifier.c_str(), m_serverId);
 
 		m_status = UA_Client_Subscriptions_new(m_client, *OPCUA_SubscriptionSettings, &m_id);
 
@@ -65,7 +65,7 @@ namespace gateway
 		if (m_status != UA_STATUSCODE_GOOD)
 			throw std::exception("OPCUA_Subscription something went wrong while creating the subscription link.");
 
-		LOG("OPCUA_Subscription was created. Id: %d, ServerId: %d\n", UA_DateTime_now(), m_id, m_serverId);
+		LOG("OPCUA_Subscription was created.\n");
 	}
 
 	OPCUA_Subscription::~OPCUA_Subscription()

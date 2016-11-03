@@ -15,6 +15,10 @@ namespace gateway
 		void * handle
 	)
 	{
+		// Do not subscribe if NodeId type does not qualify or target is parent of refrenceTypeId
+		if (childId.identifierType != UA_NODEIDTYPE_STRING || isInverse)
+			return UA_STATUSCODE_GOOD;
+
 		// Get client instance
 		OPCUA_Client * client = (OPCUA_Client *)handle;
 
