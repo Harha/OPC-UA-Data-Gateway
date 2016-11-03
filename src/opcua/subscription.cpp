@@ -5,12 +5,38 @@
 namespace gateway
 {
 
+	UA_SubscriptionSettings * OPCUA_SubscriptionSettings;
+
 	void OPCUA_Callback_MonitoredItem(
 		UA_UInt32 monId,
 		UA_DataValue * value,
 		void * context
 	)
 	{
+		// Get the subscription instance
+		OPCUA_Subscription * sub = (OPCUA_Subscription *)context;
+
+		// Get properties
+		UA_DateTime datetime = value->sourceTimestamp;
+
+		if (value->hasValue)
+		{
+			switch (value->value.type->typeIndex)
+			{
+			case UA_TYPES_INT16:
+			case UA_TYPES_INT32:
+			case UA_TYPES_INT64:
+			{
+				LOG("Identifier: %16s, NsIndex: %d, Value: %d\n", datetime, sub->getIdentifier().c_str(), sub->getNsIndex(), *(UA_Int64 *)value->value.data);
+			}
+			break;
+			case UA_TYPES_FLOAT:
+			{
+				LOG("Identifier: %16s, NsIndex: %d, Value: %.5f\n", datetime, sub->getIdentifier().c_str(), sub->getNsIndex(), *(UA_Float *)value->value.data);
+			}
+			break;
+			}
+		}
 	}
 
 	OPCUA_Subscription::OPCUA_Subscription(
@@ -18,16 +44,18 @@ namespace gateway
 		UA_NodeId * nodeId,
 		int32_t serverId
 	) :
+		m_identifier((char *)nodeId->identifier.byteString.data),
+		m_nsIndex(nodeId->namespaceIndex),
 		m_client(client),
 		m_status(UA_STATUSCODE_GOOD),
 		m_id(0),
-		m_nodeId(nodeId),
+		m_nodeId(new UA_NodeId(*nodeId)),
 		m_monitoredItemId(0),
 		m_serverId(serverId)
 	{
 		LOG("OPCUA_Subscription serverId(%d) initializing...\n", UA_DateTime_now(), m_serverId);
 
-		m_status = UA_Client_Subscriptions_new(m_client, UA_SubscriptionSettings_standard, &m_id);
+		m_status = UA_Client_Subscriptions_new(m_client, *OPCUA_SubscriptionSettings, &m_id);
 
 		if (m_status != UA_STATUSCODE_GOOD)
 			throw std::exception("OPCUA_Subscription something went wrong while creating the object.");
@@ -52,6 +80,16 @@ namespace gateway
 		{
 			WRN("OPCUA_Subscription was destroyed. Unattached instance, client was NULL.");
 		}
+	}
+
+	std::string OPCUA_Subscription::getIdentifier() const
+	{
+		return m_identifier;
+	}
+
+	uint16_t OPCUA_Subscription::getNsIndex() const
+	{
+		return m_nsIndex;
 	}
 
 	UA_Client * OPCUA_Subscription::getClient()

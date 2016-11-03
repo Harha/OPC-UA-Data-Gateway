@@ -11016,7 +11016,7 @@ UA_Client_addMethodNode(UA_Client *client, const UA_NodeId requestedNewNodeId,
  * See also :ref:`here <client-subscriptions>`. */
 #ifdef UA_ENABLE_SUBSCRIPTIONS
 
-typedef struct {
+typedef struct _UA_SubscriptionSettings {
     UA_Double requestedPublishingInterval;
     UA_UInt32 requestedLifetimeCount;
     UA_UInt32 requestedMaxKeepAliveCount;

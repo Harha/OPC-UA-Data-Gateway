@@ -1,32 +1,29 @@
 {
   "ua_client_config": {
-    "sub_publish_interval": 100,
+    "sub_publish_interval": 10,
     "sub_publish_priority": 1
   },
   "ua_servers_config": [
     {
       "id": 0,
-      "endpoint": "opc.tcp://harha.us.to:48050",
-      "username": "",
-      "password": "",
-      "subscriptions": [
-      ]
-    },
-    {
-      "id": 1,
-      "endpoint": "opc.tcp://Harha-Laptop:48050",
+      "endpoint": "opc.tcp://harha-Laptop:48050",
       "username": "",
       "password": "",
       "subscriptions": [
         {
-          "is_folder": true,
-          "ns_index": 1,
-          "identifier": "ThisIsAFolderSub"
+          "is_folder": false,
+          "ns_index": 6,
+          "identifier": "MAIN.sine"
         },
         {
           "is_folder": false,
-          "ns_index": 0,
-          "identifier": "sensor1"
+          "ns_index": 6,
+          "identifier": "MAIN.ticks"
+        },
+        {
+          "is_folder": false,
+          "ns_index": 6,
+          "identifier": "MAIN.t"
         }
       ]
     }

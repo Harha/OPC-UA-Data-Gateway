@@ -5,6 +5,7 @@
 #include "3rdparty/json.hpp"
 #include "macros.h"
 #include "opcua/client.h"
+#include "opcua/subscription.h"
 
 using json = nlohmann::json;
 using namespace gateway;
@@ -13,14 +14,20 @@ static UA_StatusCode gateway_status;
 static std::vector<OPCUA_Client *> gateway_clients;
 static json gateway_settings;
 
-static UA_SubscriptionSettings OPCUA_SubscriptionSettings =
+static UA_SubscriptionSettings gateway_subscription_settings =
 {
-	100.0,	// requestedPublishingInterval
-	10000,	// requestedLifetimeCount
-	1,		// requestedMaxKeepAliveCount
-	10,		// maxNotificationsPerPublish
-	true,	// publishingEnabled
-	1		// priority
+	// requestedPublishingInterval
+	100.0,
+	// requestedLifetimeCount
+	10000,
+	// requestedMaxKeepAliveCount
+	1,
+	// maxNotificationsPerPublish
+	10,
+	// publishingEnabled
+	true,
+	// priority
+	1
 };
 
 int main(int argc, char * argv[])
@@ -37,9 +44,11 @@ int main(int argc, char * argv[])
 	settings >> gateway_settings;
 	settings.close();
 
-	// Configure stuff
-	OPCUA_SubscriptionSettings.requestedPublishingInterval = gateway_settings["ua_client_config"]["sub_publish_interval"].get<UA_Double>();
-	OPCUA_SubscriptionSettings.priority = gateway_settings["ua_client_config"]["sub_publish_priority"].get<UA_Byte>();
+	// Configure subscription settings
+	gateway_subscription_settings.requestedPublishingInterval = gateway_settings["ua_client_config"]["sub_publish_interval"].get<UA_Double>();
+	gateway_subscription_settings.priority = gateway_settings["ua_client_config"]["sub_publish_priority"].get<UA_Byte>();
+
+	OPCUA_SubscriptionSettings = &gateway_subscription_settings;
 
 	// Initialize all clients
 	try
@@ -111,6 +120,5 @@ int main(int argc, char * argv[])
 		delete c;
 	}
 
-	system("pause");
-	return 0;
+	return gateway_status;
 }

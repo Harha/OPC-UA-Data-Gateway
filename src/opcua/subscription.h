@@ -8,9 +8,13 @@ struct UA_Client;
 struct _UA_NodeId;
 typedef _UA_NodeId UA_NodeId;
 typedef uint32_t UA_StatusCode;
+struct _UA_SubscriptionSettings;
+typedef _UA_SubscriptionSettings UA_SubscriptionSettings;
 
 namespace gateway
 {
+
+	extern UA_SubscriptionSettings * OPCUA_SubscriptionSettings;
 
 	class OPCUA_Subscription
 	{
@@ -21,6 +25,8 @@ namespace gateway
 			int32_t serverId
 		);
 		~OPCUA_Subscription();
+		std::string getIdentifier() const;
+		uint16_t getNsIndex() const;
 		UA_Client * getClient();
 		UA_StatusCode getStatus() const;
 		UA_NodeId * getNodeId();
@@ -28,6 +34,8 @@ namespace gateway
 		uint32_t getMonitoredItemId() const;
 		int32_t getServerId() const;
 	private:
+		std::string m_identifier;
+		uint16_t m_nsIndex;
 		UA_Client * m_client;
 		UA_StatusCode m_status;
 		UA_NodeId * m_nodeId;

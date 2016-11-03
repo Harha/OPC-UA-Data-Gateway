@@ -19,7 +19,7 @@ namespace gateway
 		OPCUA_Client * client = (OPCUA_Client *)handle;
 
 		// Create subscription instance
-		OPCUA_Subscription * sub = new OPCUA_Subscription(client->getClient(), new UA_NodeId(childId), client->getServerId());
+		OPCUA_Subscription * sub = new OPCUA_Subscription(client->getClient(), &childId, client->getServerId());
 
 		// Insert the subscription to client's vector
 		client->getSubscriptions().push_back(sub);
@@ -77,7 +77,7 @@ namespace gateway
 	{
 		m_status = UA_Client_forEachChildNodeCall(m_client, UA_NODEID_STRING(nsIndex, identifier), &OPCUA_Callback_NodeIterator, (void *) this);
 
-		LOG("OPCUA_Client serverId(%d) subscribeToAll %d: %s", UA_DateTime_now(), m_serverId, nsIndex, identifier);
+		LOG("OPCUA_Client serverId(%d) subscribeToAll %d: %s\n", UA_DateTime_now(), m_serverId, nsIndex, identifier);
 	}
 
 	void OPCUA_Client::subscribeToOne(uint16_t nsIndex, char * identifier)
@@ -85,7 +85,7 @@ namespace gateway
 		OPCUA_Subscription * sub = new OPCUA_Subscription(m_client, &UA_NODEID_STRING(nsIndex, identifier), m_serverId);
 		m_subscriptions.push_back(sub);
 
-		LOG("OPCUA_Client serverId(%d) subscribeToOne %d: %s", UA_DateTime_now(), m_serverId, nsIndex, identifier);
+		LOG("OPCUA_Client serverId(%d) subscribeToOne %d: %s\n", UA_DateTime_now(), m_serverId, nsIndex, identifier);
 	}
 
 	std::string OPCUA_Client::getEndpoint() const
