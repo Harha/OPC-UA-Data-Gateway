@@ -9,7 +9,7 @@
   },
   "ua_servers_config": [
     {
-      "id": 0,
+      "serverId": 0,
       "endpoint": "opc.tcp://harha.us.to:48050",
       "username": "",
       "password": "",
@@ -23,6 +23,24 @@
           "is_folder": true,
           "ns_index": 2,
           "identifier": "MyObject"
+        }
+      ]
+    },
+    {
+      "serverId": 1,
+      "endpoint": "opc.tcp://harha.us.to:48050",
+      "username": "",
+      "password": "",
+      "subscriptions": [
+        {
+          "is_folder": true,
+          "ns_index": 0,
+          "identifier": "Test"
+        },
+        {
+          "is_folder": true,
+          "ns_index": 2,
+          "identifier": "Test2"
         }
       ]
     }
