@@ -3,17 +3,26 @@
     "sub_publish_interval": 10,
     "sub_publish_priority": 1
   },
+  "ua_rest_config": {
+    "url": "127.0.0.1",
+    "port": 9090
+  },
   "ua_servers_config": [
     {
       "id": 0,
-      "endpoint": "opc.tcp://harha-Laptop:48050",
+      "endpoint": "opc.tcp://harha.us.to:48050",
       "username": "",
       "password": "",
       "subscriptions": [
         {
           "is_folder": true,
-          "ns_index": 6,
-          "identifier": "MAIN"
+          "ns_index": 0,
+          "identifier": "MyDevice"
+        },
+        {
+          "is_folder": true,
+          "ns_index": 2,
+          "identifier": "MyObject"
         }
       ]
     }

@@ -66,6 +66,7 @@ namespace gateway
 	{
 		if (m_client != NULL)
 		{
+			UA_Client_disconnect(m_client);
 			UA_Client_delete(m_client);
 
 			LOG("OPCUA_Client serverId(%d) was destroyed. Endpoint URL: %s", UA_DateTime_now(), m_serverId, m_endpoint.c_str());
