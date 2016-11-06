@@ -2,6 +2,7 @@
 #define CLIENT_HTTP_H
 
 #include <string>
+#include "../3rdparty/json.hpp"
 
 namespace gateway
 {
@@ -15,7 +16,8 @@ namespace gateway
 			const std::string & password = ""
 		);
 		~HTTP_Client();
-		void update();
+		nlohmann::json getJSON(const std::string & path);
+		void postJSON(const std::string & path, nlohmann::json data);
 	private:
 		std::string m_endpoint;
 		std::string m_username;

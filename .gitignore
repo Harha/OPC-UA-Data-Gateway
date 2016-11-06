@@ -1,6 +1,5 @@
 # Directory names to ignore
 .vs/
-bin/
 obj/
 packages/
 Debug/

@@ -75,12 +75,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>./inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>./lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Ws2_32.lib;open62541d.lib;curlcpp.lib;libcurl_imp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Ws2_32.lib;open62541.lib;curlcpp.lib;libcurl_imp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -100,7 +100,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>./inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>Cdecl</CallingConvention>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -131,6 +131,37 @@
     <ClCompile Include="src\opcua\opcua_subscription.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\cookie.h" />
+    <ClInclude Include="inc\cookie_date.h" />
+    <ClInclude Include="inc\cookie_datetime.h" />
+    <ClInclude Include="inc\cookie_time.h" />
+    <ClInclude Include="inc\curl\curl.h" />
+    <ClInclude Include="inc\curl\curlbuild.h" />
+    <ClInclude Include="inc\curl\curlrules.h" />
+    <ClInclude Include="inc\curl\curlver.h" />
+    <ClInclude Include="inc\curl\easy.h" />
+    <ClInclude Include="inc\curl\mprintf.h" />
+    <ClInclude Include="inc\curl\multi.h" />
+    <ClInclude Include="inc\curl\stdcheaders.h" />
+    <ClInclude Include="inc\curl\typecheck-gcc.h" />
+    <ClInclude Include="inc\curl_config.h" />
+    <ClInclude Include="inc\curl_cookie.h" />
+    <ClInclude Include="inc\curl_easy.h" />
+    <ClInclude Include="inc\curl_easy_info.h" />
+    <ClInclude Include="inc\curl_exception.h" />
+    <ClInclude Include="inc\curl_form.h" />
+    <ClInclude Include="inc\curl_global.h" />
+    <ClInclude Include="inc\curl_header.h" />
+    <ClInclude Include="inc\curl_info.h" />
+    <ClInclude Include="inc\curl_interface.h" />
+    <ClInclude Include="inc\curl_ios.h" />
+    <ClInclude Include="inc\curl_multi.h" />
+    <ClInclude Include="inc\curl_option.h" />
+    <ClInclude Include="inc\curl_pair.h" />
+    <ClInclude Include="inc\curl_receiver.h" />
+    <ClInclude Include="inc\curl_sender.h" />
+    <ClInclude Include="inc\curl_share.h" />
+    <ClInclude Include="inc\curl_utility.h" />
     <ClInclude Include="inc\open62541.h" />
     <ClInclude Include="src\3rdparty\json.hpp" />
     <ClInclude Include="src\http\http_client.h" />
@@ -143,8 +174,9 @@
     <None Include="res\settings.json" />
   </ItemGroup>
   <ItemGroup>
+    <Library Include="lib\curlcpp.lib" />
+    <Library Include="lib\libcurl_imp.lib" />
     <Library Include="lib\open62541.lib" />
-    <Library Include="lib\open62541d.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
