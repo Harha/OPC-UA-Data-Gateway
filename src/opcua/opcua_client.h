@@ -1,5 +1,5 @@
-#ifndef CLIENT_H
-#define CLIENT_H
+#ifndef CLIENT_OPCUA_H
+#define CLIENT_OPCUA_H
 
 #include <string>
 #include <cstdint>
@@ -47,4 +47,4 @@ namespace gateway
 
 }
 
-#endif // CLIENT_H
+#endif // CLIENT_OPCUA_H

@@ -1,4 +1,4 @@
-#include "subscription.h"
+#include "opcua_subscription.h"
 #include <open62541.h>
 #include "../macros.h"
 

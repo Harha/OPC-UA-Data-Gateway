@@ -1,9 +1,9 @@
-#include "client.h"
+#include "opcua_client.h"
 #include <iostream>
 #include <fstream>
 #include <open62541.h>
 #include "../macros.h"
-#include "subscription.h"
+#include "opcua_subscription.h"
 
 namespace gateway
 {
