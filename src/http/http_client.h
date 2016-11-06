@@ -7,6 +7,14 @@
 namespace gateway
 {
 
+	enum HTTP_Request_t
+	{
+		HTTP_GET,
+		HTTP_POST,
+		HTTP_PUT,
+		HTTP_DELETE
+	};
+
 	class HTTP_Client
 	{
 	public:
@@ -17,7 +25,7 @@ namespace gateway
 		);
 		~HTTP_Client();
 		nlohmann::json getJSON(const std::string & path);
-		void postJSON(const std::string & path, nlohmann::json data);
+		void sendJSON(const std::string & path, HTTP_Request_t request, nlohmann::json & data);
 	private:
 		std::string m_endpoint;
 		std::string m_username;

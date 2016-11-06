@@ -38,10 +38,57 @@ namespace gateway
 
 	json HTTP_Client::getJSON(const std::string & path)
 	{
-		// Input stream for request output
-		/*std::ostringstream sstream;
-		curl_ios<std::ostringstream> ios(sstream);
+		// Store request variables
+		std::string url_str(m_endpoint + path);
+		json result = "{}"_json;
 
+		// Input stream for request output
+		std::ostringstream sstream;
+		curl_ios<std::ostringstream> cwriter(sstream);
+
+		// Create request header
+		curl_header cheader;
+
+		// Add request headers
+		cheader.add("Accept: application/json");
+
+		// Use curl_easy request interface
+		curl_easy ceasy(cwriter);
+
+		// Add request payload
+		ceasy.add<CURLOPT_HTTPHEADER>(cheader.get());
+		ceasy.add<CURLOPT_URL>(url_str.c_str());
+		ceasy.add<CURLOPT_FOLLOWLOCATION>(1L);
+		ceasy.add<CURLOPT_VERBOSE>(1L);
+
+		try
+		{
+			// Excecute the request
+			ceasy.perform();
+
+			if (sstream.str().size() > 2)
+			{
+				// Get the result JSON
+				result = json::parse(sstream.str());
+			}
+		}
+		catch (const curl_easy_exception & e)
+		{
+			ERR("libcurl Excpetion: %s\n", UA_DateTime_now(), e.what());
+		}
+		catch (const std::exception & e)
+		{
+			ERR("normal Excpetion: %s\n", UA_DateTime_now(), e.what());
+		}
+
+		return result;
+	}
+
+	void HTTP_Client::sendJSON(const std::string & path, HTTP_Request_t request, json & data)
+	{
+		// Store request variables
+		std::string url_str(m_endpoint + path);
+		std::string data_str = data.dump();
 
 		// Create request header
 		curl_header cheader;
@@ -54,29 +101,25 @@ namespace gateway
 
 		// Add request payload
 		ceasy.add<CURLOPT_HTTPHEADER>(cheader.get());
-		ceasy.add<CURLOPT_URL>((m_endpoint + path).c_str());
-		ceasy.add<CURLOPT_FOLLOWLOCATION>(1L);
+		ceasy.add<CURLOPT_URL>(url_str.c_str());
+		ceasy.add<CURLOPT_CUSTOMREQUEST>((request == HTTP_POST) ? "POST" : "PUT");
+		ceasy.add<CURLOPT_POSTFIELDS>(data_str.c_str());
+		ceasy.add<CURLOPT_POSTFIELDSIZE>(-1L);
+		ceasy.add<CURLOPT_VERBOSE>(1L);
 
-		// Excecute the request
 		try
 		{
+			// Excecute the request
 			ceasy.perform();
 		}
 		catch (const curl_easy_exception & e)
 		{
-			ERR("Excpetion: %s\n", UA_DateTime_now(), e.what());
+			ERR("libcurl Excpetion: %s\n", UA_DateTime_now(), e.what());
 		}
-
-		// Return the result
-		json result;
-		sstream << result;
-		return result;*/
-		return "{}"_json;
-	}
-
-	void HTTP_Client::postJSON(const std::string & path, json data)
-	{
-
+		catch (const std::exception & e)
+		{
+			ERR("normal Excpetion: %s\n", UA_DateTime_now(), e.what());
+		}
 	}
 
 }

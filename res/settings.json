@@ -18,12 +18,22 @@
         {
           "is_folder": true,
           "ns_index": 0,
-          "identifier": "MyDevice"
+          "identifier": "Test1"
         },
         {
           "is_folder": true,
           "ns_index": 2,
-          "identifier": "MyObject"
+          "identifier": "Test2"
+        },
+        {
+          "is_folder": true,
+          "ns_index": 5,
+          "identifier": "Sensor3"
+        },
+        {
+          "is_folder": true,
+          "ns_index": 5,
+          "identifier": "Sensor4"
         }
       ]
     },
@@ -33,15 +43,33 @@
       "username": "",
       "password": "",
       "subscriptions": [
+      ]
+    },
+    {
+      "serverId": 2,
+      "endpoint": "opc.tcp://harha.us.to:48050",
+      "username": "",
+      "password": "",
+      "subscriptions": [
         {
           "is_folder": true,
           "ns_index": 0,
-          "identifier": "Test"
+          "identifier": "Test3"
         },
         {
           "is_folder": true,
           "ns_index": 2,
-          "identifier": "Test2"
+          "identifier": "Test4"
+        },
+        {
+          "is_folder": true,
+          "ns_index": 1,
+          "identifier": "Sensor1"
+        },
+        {
+          "is_folder": true,
+          "ns_index": 2,
+          "identifier": "Test6"
         }
       ]
     }
