@@ -5,6 +5,10 @@
 #include "../macros.h"
 #include "opcua_subscription.h"
 #include "../http/http_client.h"
+#include "../3rdparty/json.hpp"
+
+// For convenience
+using json = nlohmann::json;
 
 namespace gateway
 {
@@ -28,6 +32,15 @@ namespace gateway
 
 		// Insert the subscription to client's vector
 		client->getSubscriptions().push_back(sub);
+
+		// Build the JSON object
+		json opcua_subscription;
+		opcua_subscription["identifier"] = sub->getIdentifier();
+		opcua_subscription["nsIndex"] = sub->getNsIndex();
+		opcua_subscription["serverId"] = sub->getServerId();
+
+		// POST the subscription to REST
+		sub->getClient()->getHttpClient()->sendJSON("/opcuasubscriptions", HTTP_POST, opcua_subscription);
 
 		return sub->getStatus();
 	}
@@ -72,7 +85,7 @@ namespace gateway
 			UA_Client_disconnect(m_client);
 			UA_Client_delete(m_client);
 
-			LOG("OPCUA_Client serverId(%d) was destroyed. Endpoint URL: %s", UA_DateTime_now(), m_serverId, m_endpoint.c_str());
+			LOG("OPCUA_Client serverId(%d) was destroyed. Endpoint URL: %s\n", UA_DateTime_now(), m_serverId, m_endpoint.c_str());
 		}
 	}
 

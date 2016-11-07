@@ -55,9 +55,14 @@ int main(int argc, char * argv[])
 	std::string rest_endpoint = gateway_settings["ua_rest_config"]["endpoint"].get<std::string>();
 	std::string rest_username = gateway_settings["ua_rest_config"]["username"].get<std::string>();
 	std::string rest_password = gateway_settings["ua_rest_config"]["password"].get<std::string>();
+	std::string rest_output = gateway_settings["ua_rest_config"]["output"].get<std::string>();
+	bool rest_verbose = gateway_settings["ua_rest_config"]["verbose"].get<bool>();
 
 	// Initialize HTTP client
-	gateway_http_client = new HTTP_Client(rest_endpoint, rest_username, rest_password);
+	gateway_http_client = new HTTP_Client(rest_endpoint, rest_username, rest_password, rest_output, rest_verbose);
+
+	// Delete subscriptions from database
+	gateway_http_client->sendREQ("/opcuasubscriptions", HTTP_DELETE);
 
 	// Get list of servers in database
 	gateway_db_servers = gateway_http_client->getJSON("/opcuaservers");
@@ -120,11 +125,11 @@ int main(int argc, char * argv[])
 			// Insert / Update the server entry in database
 			if (exists_in_db == false)
 			{
-				gateway_http_client->sendJSON("/opcuaservers", HTTP_POST, true, gateway_settings["ua_servers_config"][i]);
+				gateway_http_client->sendJSON("/opcuaservers", HTTP_POST, gateway_settings["ua_servers_config"][i]);
 			}
 			else
 			{
-				gateway_http_client->sendJSON("/opcuaservers", HTTP_PUT, true, gateway_settings["ua_servers_config"][i]);
+				gateway_http_client->sendJSON("/opcuaservers", HTTP_PUT, gateway_settings["ua_servers_config"][i]);
 			}
 
 			// Push the client into clients vector

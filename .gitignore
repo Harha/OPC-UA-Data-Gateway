@@ -6,6 +6,7 @@ Debug/
 Release/
 logs/
 Properties/
+res/*.log
 
 # Visual Studio database files
 *.VC.db

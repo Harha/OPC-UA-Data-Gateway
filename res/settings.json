@@ -4,21 +4,23 @@
     "sub_publish_priority": 1
   },
   "ua_rest_config": {
-    "endpoint": "http://localhost:9090",
+    "endpoint": "http://harha.us.to:9090",
     "username": "",
-    "password": ""
+    "password": "",
+    "output": "./res/libcurl_log.log",
+    "verbose":  false
   },
   "ua_servers_config": [
     {
-      "serverId": 0,
-      "endpoint": "opc.tcp://harha.us.to:48050",
+      "serverId": 2,
+      "endpoint": "opc.tcp://harha-Laptop:48050",
       "username": "",
       "password": "",
       "subscriptions": [
         {
           "is_folder": true,
-          "ns_index": 0,
-          "identifier": "Root"
+          "ns_index": 8,
+          "identifier": "MAIN"
         }
       ]
     }
