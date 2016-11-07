@@ -59,7 +59,7 @@ namespace gateway
 		ceasy.add<CURLOPT_HTTPHEADER>(cheader.get());
 		ceasy.add<CURLOPT_URL>(url_str.c_str());
 		ceasy.add<CURLOPT_FOLLOWLOCATION>(1L);
-		ceasy.add<CURLOPT_VERBOSE>(1L);
+		ceasy.add<CURLOPT_VERBOSE>((m_verbose == true) ? 1L : 0L);
 
 		try
 		{
@@ -105,7 +105,7 @@ namespace gateway
 		ceasy.add<CURLOPT_CUSTOMREQUEST>((request == HTTP_POST) ? "POST" : "PUT");
 		ceasy.add<CURLOPT_POSTFIELDS>(data_str.c_str());
 		ceasy.add<CURLOPT_POSTFIELDSIZE>(-1L);
-		ceasy.add<CURLOPT_VERBOSE>(1L);
+		ceasy.add<CURLOPT_VERBOSE>((m_verbose == true) ? 1L : 0L);
 
 		try
 		{

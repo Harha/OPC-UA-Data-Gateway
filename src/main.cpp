@@ -120,11 +120,11 @@ int main(int argc, char * argv[])
 			// Insert / Update the server entry in database
 			if (exists_in_db == false)
 			{
-				gateway_http_client->sendJSON("/opcuaservers", HTTP_POST, gateway_settings["ua_servers_config"][i]);
+				gateway_http_client->sendJSON("/opcuaservers", HTTP_POST, true, gateway_settings["ua_servers_config"][i]);
 			}
 			else
 			{
-				gateway_http_client->sendJSON("/opcuaservers", HTTP_PUT, gateway_settings["ua_servers_config"][i]);
+				gateway_http_client->sendJSON("/opcuaservers", HTTP_PUT, true, gateway_settings["ua_servers_config"][i]);
 			}
 
 			// Push the client into clients vector

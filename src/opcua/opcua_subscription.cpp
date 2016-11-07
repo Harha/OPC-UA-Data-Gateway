@@ -2,6 +2,7 @@
 #include <open62541.h>
 #include "../macros.h"
 #include "opcua_client.h"
+#include "../http/http_client.h"
 #include "../3rdparty/json.hpp"
 
 // For convenience
@@ -29,34 +30,61 @@ namespace gateway
 		opcua_variable["nsIndex"] = sub->getNsIndex();
 		opcua_variable["identifier"] = sub->getIdentifier();
 		opcua_variable["serverId"] = sub->getServerId();
-		opcua_variable["serverTimeStamp"] = datetime;
+		//opcua_variable["serverTimeStamp"] = datetime;
 
 		if (value->hasValue)
 		{
 			switch (value->value.type->typeIndex)
 			{
+			case UA_TYPES_STRING:
+			{
+				opcua_variable["value"] = (*(UA_String *)value->value.data).data;
+			} break;
+			case UA_TYPES_BYTESTRING:
+			{
+				opcua_variable["value"] = (*(UA_ByteString *)value->value.data).data;
+			} break;
 			case UA_TYPES_BOOLEAN:
 			{
 				opcua_variable["value"] = *(UA_Boolean *)value->value.data == UA_TRUE ? true : false;
-			}
-			break;
+			} break;
 			case UA_TYPES_INT16:
+			{
+				opcua_variable["value"] = *(UA_Int16 *)value->value.data;
+			} break;
 			case UA_TYPES_INT32:
+			{
+				opcua_variable["value"] = *(UA_Int32 *)value->value.data;
+			} break;
 			case UA_TYPES_INT64:
 			{
 				opcua_variable["value"] = *(UA_Int64 *)value->value.data;
-			}
-			break;
+			} break;
+			case UA_TYPES_UINT16:
+			{
+				opcua_variable["value"] = *(UA_UInt16 *)value->value.data;
+			} break;
+			case UA_TYPES_UINT32:
+			{
+				opcua_variable["value"] = *(UA_UInt32 *)value->value.data;
+			} break;
+			case UA_TYPES_UINT64:
+			{
+				opcua_variable["value"] = *(UA_UInt64 *)value->value.data;
+			} break;
 			case UA_TYPES_FLOAT:
 			{
 				opcua_variable["value"] = *(UA_Float *)value->value.data;
-			}
-			break;
+			} break;
 			}
 		}
 
+		// POST the changed value to REST
+		if (opcua_variable.find("value") != opcua_variable.end())
+			sub->getClient()->getHttpClient()->sendJSON("/opcuavariables", HTTP_POST, false, opcua_variable);
+
 		// Log the variable
-		LOG("OPCUA_Variable: %s", UA_DateTime_now(), opcua_variable.dump().c_str());
+		LOG("OPCUA_Variable: %s\n", UA_DateTime_now(), opcua_variable.dump().c_str());
 	}
 
 	OPCUA_Subscription::OPCUA_Subscription(
