@@ -1,6 +1,11 @@
 #include "opcua_subscription.h"
 #include <open62541.h>
 #include "../macros.h"
+#include "opcua_client.h"
+#include "../3rdparty/json.hpp"
+
+// For convenience
+using json = nlohmann::json;
 
 namespace gateway
 {
@@ -19,33 +24,43 @@ namespace gateway
 		// Get properties
 		UA_DateTime datetime = value->sourceTimestamp;
 
+		// Build the JSON object
+		json opcua_variable;
+		opcua_variable["nsIndex"] = sub->getNsIndex();
+		opcua_variable["identifier"] = sub->getIdentifier();
+		opcua_variable["serverId"] = sub->getServerId();
+		opcua_variable["serverTimeStamp"] = datetime;
+
 		if (value->hasValue)
 		{
 			switch (value->value.type->typeIndex)
 			{
 			case UA_TYPES_BOOLEAN:
 			{
-				LOG("ServerId: %d, Identifier: %16s, NsIndex: %d, Value: %s\n", datetime, sub->getServerId(), sub->getIdentifier().c_str(), sub->getNsIndex(), *(UA_Boolean *)value->value.data == UA_TRUE ? "true" : "false");
+				opcua_variable["value"] = *(UA_Boolean *)value->value.data == UA_TRUE ? true : false;
 			}
 			break;
 			case UA_TYPES_INT16:
 			case UA_TYPES_INT32:
 			case UA_TYPES_INT64:
 			{
-				LOG("ServerId: %d, Identifier: %16s, NsIndex: %d, Value: %d\n", datetime, sub->getServerId(), sub->getIdentifier().c_str(), sub->getNsIndex(), *(UA_Int64 *)value->value.data);
+				opcua_variable["value"] = *(UA_Int64 *)value->value.data;
 			}
 			break;
 			case UA_TYPES_FLOAT:
 			{
-				LOG("ServerId: %d, Identifier: %16s, NsIndex: %d, Value: %.5f\n", datetime, sub->getServerId(), sub->getIdentifier().c_str(), sub->getNsIndex(), *(UA_Float *)value->value.data);
+				opcua_variable["value"] = *(UA_Float *)value->value.data;
 			}
 			break;
 			}
 		}
+
+		// Log the variable
+		LOG("OPCUA_Variable: %s", UA_DateTime_now(), opcua_variable.dump().c_str());
 	}
 
 	OPCUA_Subscription::OPCUA_Subscription(
-		UA_Client * client,
+		OPCUA_Client * client,
 		UA_NodeId * nodeId,
 		int32_t serverId
 	) :
@@ -60,12 +75,12 @@ namespace gateway
 	{
 		LOG("OPCUA_Subscription init. Identifier: %s, ServerId: %d\n", UA_DateTime_now(), m_identifier.c_str(), m_serverId);
 
-		m_status = UA_Client_Subscriptions_new(m_client, *OPCUA_SubscriptionSettings, &m_id);
+		m_status = UA_Client_Subscriptions_new(m_client->getClient(), *OPCUA_SubscriptionSettings, &m_id);
 
 		if (m_status != UA_STATUSCODE_GOOD)
 			throw std::exception("OPCUA_Subscription something went wrong while creating the object.");
 
-		m_status = UA_Client_Subscriptions_addMonitoredItem(m_client, m_id, *m_nodeId, UA_ATTRIBUTEID_VALUE, &OPCUA_Callback_MonitoredItem, (void *) this, &m_monitoredItemId);
+		m_status = UA_Client_Subscriptions_addMonitoredItem(m_client->getClient(), m_id, *m_nodeId, UA_ATTRIBUTEID_VALUE, &OPCUA_Callback_MonitoredItem, (void *) this, &m_monitoredItemId);
 
 		if (m_status != UA_STATUSCODE_GOOD)
 			throw std::exception("OPCUA_Subscription something went wrong while creating the subscription link.");
@@ -77,7 +92,7 @@ namespace gateway
 	{
 		if (m_client != NULL)
 		{
-			UA_Client_Subscriptions_remove(m_client, m_id);
+			UA_Client_Subscriptions_remove(m_client->getClient(), m_id);
 
 			LOG("OPCUA_Subscription was destroyed. Id: %d, ServerId: %d\n", UA_DateTime_now(), m_id, m_serverId);
 		}
@@ -85,6 +100,11 @@ namespace gateway
 		{
 			WRN("OPCUA_Subscription was destroyed. Unattached instance, client was NULL.");
 		}
+	}
+
+	OPCUA_Client * OPCUA_Subscription::getClient()
+	{
+		return m_client;
 	}
 
 	std::string OPCUA_Subscription::getIdentifier() const
@@ -95,11 +115,6 @@ namespace gateway
 	uint16_t OPCUA_Subscription::getNsIndex() const
 	{
 		return m_nsIndex;
-	}
-
-	UA_Client * OPCUA_Subscription::getClient()
-	{
-		return m_client;
 	}
 
 	UA_StatusCode OPCUA_Subscription::getStatus() const

@@ -14,6 +14,7 @@ namespace gateway
 {
 
 	class OPCUA_Subscription;
+	class HTTP_Client;
 
 	class OPCUA_Client
 	{
@@ -22,7 +23,8 @@ namespace gateway
 			const std::string & endpoint = "opc.tcp://localhost:48050",
 			const std::string & username = "",
 			const std::string & password = "",
-			int32_t serverId = -1
+			int32_t serverId = -1,
+			HTTP_Client * httpClient = nullptr
 		);
 		~OPCUA_Client();
 		void update();
@@ -35,6 +37,7 @@ namespace gateway
 		UA_StatusCode getStatus() const;
 		int32_t getServerId() const;
 		std::vector<OPCUA_Subscription *> & getSubscriptions();
+		HTTP_Client * getHttpClient();
 	private:
 		std::string m_endpoint;
 		std::string m_username;
@@ -43,6 +46,7 @@ namespace gateway
 		UA_StatusCode m_status;
 		int32_t m_serverId;
 		std::vector<OPCUA_Subscription *> m_subscriptions;
+		HTTP_Client * m_httpClient;
 	};
 
 }

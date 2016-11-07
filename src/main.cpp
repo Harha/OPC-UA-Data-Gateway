@@ -75,7 +75,7 @@ int main(int argc, char * argv[])
 			int32_t serverId = gateway_settings["ua_servers_config"][i]["serverId"].get<int32_t>();
 
 			// Create client instance
-			OPCUA_Client * client = new OPCUA_Client(endpoint, username, password, serverId);
+			OPCUA_Client * client = new OPCUA_Client(endpoint, username, password, serverId, gateway_http_client);
 
 			// Subscribe to all target namespaces / nodes
 			size_t n_subscriptions = gateway_settings["ua_servers_config"][i]["subscriptions"].size();

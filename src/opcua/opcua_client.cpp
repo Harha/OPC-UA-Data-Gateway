@@ -4,6 +4,7 @@
 #include <open62541.h>
 #include "../macros.h"
 #include "opcua_subscription.h"
+#include "../http/http_client.h"
 
 namespace gateway
 {
@@ -23,7 +24,7 @@ namespace gateway
 		OPCUA_Client * client = (OPCUA_Client *)handle;
 
 		// Create subscription instance
-		OPCUA_Subscription * sub = new OPCUA_Subscription(client->getClient(), &childId, client->getServerId());
+		OPCUA_Subscription * sub = new OPCUA_Subscription(client, &childId, client->getServerId());
 
 		// Insert the subscription to client's vector
 		client->getSubscriptions().push_back(sub);
@@ -35,7 +36,8 @@ namespace gateway
 		const std::string & endpoint,
 		const std::string & username,
 		const std::string & password,
-		int32_t serverId
+		int32_t serverId,
+		HTTP_Client * httpClient
 	) :
 		m_endpoint(endpoint),
 		m_username(username),
@@ -43,7 +45,8 @@ namespace gateway
 		m_client(NULL),
 		m_status(UA_STATUSCODE_GOOD),
 		m_serverId(serverId),
-		m_subscriptions()
+		m_subscriptions(),
+		m_httpClient(httpClient)
 	{
 		LOG("OPCUA_Client serverId(%d) initializing... endpoint URL: %s\n", UA_DateTime_now(), m_serverId, m_endpoint.c_str());
 
@@ -87,7 +90,7 @@ namespace gateway
 
 	void OPCUA_Client::subscribeToOne(uint16_t nsIndex, char * identifier)
 	{
-		OPCUA_Subscription * sub = new OPCUA_Subscription(m_client, &UA_NODEID_STRING(nsIndex, identifier), m_serverId);
+		OPCUA_Subscription * sub = new OPCUA_Subscription(this, &UA_NODEID_STRING(nsIndex, identifier), m_serverId);
 		m_subscriptions.push_back(sub);
 
 		LOG("OPCUA_Client serverId(%d) subscribeToOne %d: %s\n", UA_DateTime_now(), m_serverId, nsIndex, identifier);
@@ -126,6 +129,11 @@ namespace gateway
 	std::vector<OPCUA_Subscription *> & OPCUA_Client::getSubscriptions()
 	{
 		return m_subscriptions;
+	}
+
+	HTTP_Client * OPCUA_Client::getHttpClient()
+	{
+		return m_httpClient;
 	}
 
 }
