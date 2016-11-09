@@ -1,7 +1,13 @@
-Gateway Project
-===============
+OPC UA Data Gateway
+===================
 
-This OPC UA client service connects to target endpoints, subscribes to manually configured namespaces and nodes and starts pushing the subscribed object values to a REST service.
+This is an OPC UA client service that connects to target endpoints, subscribes to manually configured namespaces and nodes and starts pushing the subscribed object values to a REST service.
+
+Related projects
+----------------
+Backend project: [OPC UA Data REST](https://github.com/Harha/OPC-UA-Data-REST)
+
+Frontend project: [OPC UA Data Visualizer](https://github.com/Harha/OPC-UA-Data-Visualizer)
 
 Dependencies
 ------------
