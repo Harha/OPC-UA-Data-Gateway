@@ -1,8 +1,4 @@
 {
-  "ua_client_config": {
-    "sub_publish_interval": 10,
-    "sub_publish_priority": 1
-  },
   "ua_rest_config": {
     "endpoint": "http://localhost:9090",
     "username": "",
@@ -10,16 +6,18 @@
     "output": "./res/libcurl_log.log",
     "verbose":  false
   },
-  "ua_servers_config": [
+  "ua_client_config": [
     {
-      "serverId": 2,
+      "serverId": 10,
       "endpoint": "opc.tcp://harha-Laptop:48050",
       "username": "",
       "password": "",
+      "subPublishInterval": 10,
+      "subPublishPriority": 1,
       "subscriptions": [
         {
-          "is_folder": true,
-          "ns_index": 8,
+          "isFolder": true,
+          "nsIndex": 6,
           "identifier": "MAIN"
         }
       ]

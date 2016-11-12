@@ -13,14 +13,19 @@
 using json = nlohmann::json;
 using namespace gateway;
 
+// Gateway data
+static json gateway_settings;
+
 // Gateway OPC UA data
 static UA_StatusCode gateway_opcua_status;
 static std::vector<OPCUA_Client *> gateway_opcua_clients;
-static json gateway_settings;
 
 // Gateway HTTP data
 static HTTP_Client * gateway_http_client;
+
+// Gateway DB data
 static json gateway_db_servers;
+static json gateway_db_subscriptions;
 
 static UA_SubscriptionSettings gateway_subscription_settings =
 {
@@ -46,12 +51,7 @@ int main(int argc, char * argv[])
 	settings >> gateway_settings;
 	settings.close();
 
-	// Get OPC UA subscription properties
-	gateway_subscription_settings.requestedPublishingInterval = gateway_settings["ua_client_config"]["sub_publish_interval"].get<UA_Double>();
-	gateway_subscription_settings.priority = gateway_settings["ua_client_config"]["sub_publish_priority"].get<UA_Byte>();
-	OPCUA_SubscriptionSettings = &gateway_subscription_settings;
-
-	// Get REST service properties
+	// Get REST service config
 	std::string rest_endpoint = gateway_settings["ua_rest_config"]["endpoint"].get<std::string>();
 	std::string rest_username = gateway_settings["ua_rest_config"]["username"].get<std::string>();
 	std::string rest_password = gateway_settings["ua_rest_config"]["password"].get<std::string>();
@@ -61,76 +61,26 @@ int main(int argc, char * argv[])
 	// Initialize HTTP client
 	gateway_http_client = new HTTP_Client(rest_endpoint, rest_username, rest_password, rest_output, rest_verbose);
 
-	// Delete subscriptions from database
+	// Get list of servers and subscriptions from db
+	gateway_db_servers = gateway_http_client->getJSON("/opcuaservers");
+	gateway_db_subscriptions = gateway_http_client->getJSON("/opcuasubscriptions");
+
+	// TODO: Do not delete all subscriptions from db initially and instead update/insert them
 	gateway_http_client->sendREQ("/opcuasubscriptions", HTTP_DELETE);
 
-	// Get list of servers in database
-	gateway_db_servers = gateway_http_client->getJSON("/opcuaservers");
-
-	// Initialize all clients
 	try
 	{
-		size_t n_servers = gateway_settings["ua_servers_config"].size();
-		for (size_t i = 0; i < n_servers; i++)
+		// Initialize all clients
+		size_t n_clients = gateway_settings["ua_client_config"].size();
+		for (size_t i = 0; i < n_clients; i++)
 		{
-			// Get server properties
-			std::string endpoint = gateway_settings["ua_servers_config"][i]["endpoint"].get<std::string>();
-			std::string username = gateway_settings["ua_servers_config"][i]["username"].get<std::string>();
-			std::string password = gateway_settings["ua_servers_config"][i]["password"].get<std::string>();
-			int32_t serverId = gateway_settings["ua_servers_config"][i]["serverId"].get<int32_t>();
-
 			// Create client instance
-			OPCUA_Client * client = new OPCUA_Client(endpoint, username, password, serverId, gateway_http_client);
-
-			// Subscribe to all target namespaces / nodes
-			size_t n_subscriptions = gateway_settings["ua_servers_config"][i]["subscriptions"].size();
-			for (size_t j = 0; j < n_subscriptions; j++)
-			{
-				bool isFolder = gateway_settings["ua_servers_config"][i]["subscriptions"][j]["is_folder"].get<bool>();
-				uint16_t nsIndex = gateway_settings["ua_servers_config"][i]["subscriptions"][j]["ns_index"].get<uint16_t>();
-				std::string identifier = gateway_settings["ua_servers_config"][i]["subscriptions"][j]["identifier"].get<std::string>();
-
-				if (isFolder == false)
-				{
-					// Single subscription
-					client->subscribeToOne(
-						nsIndex,
-						&identifier[0u]
-					);
-				}
-				else
-				{
-					// Subscribe to all childs of this node
-					client->subscribeToAll(
-						nsIndex,
-						&identifier[0u]
-					);
-				}
-			}
-
-			// Does this server exist in database?
-			bool exists_in_db = false;
-			size_t n_db_servers = gateway_db_servers.size();
-			for (size_t j = 0; j < n_db_servers; j++)
-			{
-				int32_t db_serverId = gateway_db_servers[j]["serverId"].get<int32_t>();
-
-				if (serverId == db_serverId)
-				{
-					exists_in_db = true;
-					break;
-				}
-			}
-
-			// Insert / Update the server entry in database
-			if (exists_in_db == false)
-			{
-				gateway_http_client->sendJSON("/opcuaservers", HTTP_POST, gateway_settings["ua_servers_config"][i]);
-			}
-			else
-			{
-				gateway_http_client->sendJSON("/opcuaservers", HTTP_PUT, gateway_settings["ua_servers_config"][i]);
-			}
+			OPCUA_Client * client = new OPCUA_Client(
+				gateway_settings["ua_client_config"][i].dump(),
+				gateway_db_servers.dump(),
+				gateway_db_subscriptions.dump(),
+				gateway_http_client
+			);
 
 			// Push the client into clients vector
 			gateway_opcua_clients.push_back(client);
@@ -138,7 +88,7 @@ int main(int argc, char * argv[])
 	}
 	catch (const std::exception & e)
 	{
-		ERR("Excpetion: %s\n", UA_DateTime_now(), e.what());
+		ERR("Exception: %s\n", UA_DateTime_now(), e.what());
 	}
 
 	// Main loop, exit if an error occurs
@@ -156,13 +106,13 @@ int main(int argc, char * argv[])
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 
-	// Cleanup OPC UA resources
+	// Cleanup OPC UA clients
 	for (OPCUA_Client * c : gateway_opcua_clients)
 	{
 		delete c;
 	}
 
-	// Cleanup HTTP resources
+	// Cleanup HTTP client
 	delete gateway_http_client;
 
 	return gateway_opcua_status;

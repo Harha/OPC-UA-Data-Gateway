@@ -20,33 +20,42 @@ namespace gateway
 	{
 	public:
 		OPCUA_Client(
-			const std::string & endpoint = "opc.tcp://localhost:48050",
-			const std::string & username = "",
-			const std::string & password = "",
-			int32_t serverId = -1,
-			HTTP_Client * httpClient = nullptr
+			const std::string & jsonConfig,
+			const std::string & jsonDbServersConfig,
+			const std::string & jsonDbSubscriptionsConfig,
+			HTTP_Client * const httpClient
 		);
 		~OPCUA_Client();
 		void update();
 		void subscribeToAll(uint16_t nsIndex = 0, char * identifier = "");
 		void subscribeToOne(uint16_t nsIndex = 0, char * identifier = "");
+		std::string getJsonConfig() const;
+		std::string getJsonDbServersConfig() const;
+		std::string getJsonDbSubscriptionsConfig() const;
+		UA_Client * getClient();
+		UA_StatusCode & getStatus();
+		HTTP_Client * getHttpClient();
+		int32_t getServerId() const;
 		std::string getEndpoint() const;
 		std::string getUsername() const;
 		std::string getPassword() const;
-		UA_Client * getClient();
-		UA_StatusCode getStatus() const;
-		int32_t getServerId() const;
+		double getSubPublishInterval() const;
+		uint8_t getSubPublishPriority() const;
 		std::vector<OPCUA_Subscription *> & getSubscriptions();
-		HTTP_Client * getHttpClient();
 	private:
+		std::string m_jsonConfig;
+		std::string m_jsonDbServersConfig;
+		std::string m_jsonDbSubscriptionsConfig;
+		UA_Client * m_client;
+		UA_StatusCode m_status;
+		HTTP_Client * m_httpClient;
+		int32_t m_serverId;
 		std::string m_endpoint;
 		std::string m_username;
 		std::string m_password;
-		UA_Client * m_client;
-		UA_StatusCode m_status;
-		int32_t m_serverId;
+		double m_subPublishInterval;
+		uint8_t m_subPublishPriority;
 		std::vector<OPCUA_Subscription *> m_subscriptions;
-		HTTP_Client * m_httpClient;
 	};
 
 }

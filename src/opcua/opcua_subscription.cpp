@@ -11,8 +11,6 @@ using json = nlohmann::json;
 namespace gateway
 {
 
-	UA_SubscriptionSettings * OPCUA_SubscriptionSettings;
-
 	// UA_DateTime -> JSON ISO 8601 DateTime conversion
 	std::string UADateTimeToJSONDateTime(UA_DateTime datetime = UA_DateTime_now())
 	{
@@ -39,15 +37,12 @@ namespace gateway
 		// Get the subscription instance
 		OPCUA_Subscription * sub = (OPCUA_Subscription *)context;
 
-		// Get properties
-		UA_DateTime datetime = value->sourceTimestamp;
-
 		// Build the JSON object
-		json opcua_variable;
-		opcua_variable["nsIndex"] = sub->getNsIndex();
-		opcua_variable["identifier"] = sub->getIdentifier();
-		opcua_variable["serverId"] = sub->getServerId();
-		opcua_variable["serverTimeStamp"] = UADateTimeToJSONDateTime(datetime);
+		json jsonThis;
+		jsonThis["identifier"] = sub->getIdentifier();
+		jsonThis["nsIndex"] = sub->getNsIndex();
+		jsonThis["serverId"] = sub->getClient()->getServerId();
+		jsonThis["serverTimeStamp"] = UADateTimeToJSONDateTime(value->sourceTimestamp);
 
 		if (value->hasValue)
 		{
@@ -55,83 +50,110 @@ namespace gateway
 			{
 			case UA_TYPES_STRING:
 			{
-				opcua_variable["value"] = (*(UA_String *)value->value.data).data;
+				jsonThis["value"] = (*(UA_String *)value->value.data).data;
 			} break;
 			case UA_TYPES_BYTESTRING:
 			{
-				opcua_variable["value"] = (*(UA_ByteString *)value->value.data).data;
+				jsonThis["value"] = (*(UA_ByteString *)value->value.data).data;
 			} break;
 			case UA_TYPES_BOOLEAN:
 			{
-				opcua_variable["value"] = *(UA_Boolean *)value->value.data == UA_TRUE ? true : false;
+				jsonThis["value"] = *(UA_Boolean *)value->value.data == UA_TRUE ? true : false;
 			} break;
 			case UA_TYPES_INT16:
 			{
-				opcua_variable["value"] = *(UA_Int16 *)value->value.data;
+				jsonThis["value"] = *(UA_Int16 *)value->value.data;
 			} break;
 			case UA_TYPES_INT32:
 			{
-				opcua_variable["value"] = *(UA_Int32 *)value->value.data;
+				jsonThis["value"] = *(UA_Int32 *)value->value.data;
 			} break;
 			case UA_TYPES_INT64:
 			{
-				opcua_variable["value"] = *(UA_Int64 *)value->value.data;
+				jsonThis["value"] = *(UA_Int64 *)value->value.data;
 			} break;
 			case UA_TYPES_UINT16:
 			{
-				opcua_variable["value"] = *(UA_UInt16 *)value->value.data;
+				jsonThis["value"] = *(UA_UInt16 *)value->value.data;
 			} break;
 			case UA_TYPES_UINT32:
 			{
-				opcua_variable["value"] = *(UA_UInt32 *)value->value.data;
+				jsonThis["value"] = *(UA_UInt32 *)value->value.data;
 			} break;
 			case UA_TYPES_UINT64:
 			{
-				opcua_variable["value"] = *(UA_UInt64 *)value->value.data;
+				jsonThis["value"] = *(UA_UInt64 *)value->value.data;
 			} break;
 			case UA_TYPES_FLOAT:
 			{
-				opcua_variable["value"] = *(UA_Float *)value->value.data;
+				jsonThis["value"] = *(UA_Float *)value->value.data;
 			} break;
 			}
 		}
 
-		// POST the changed value to REST
-		if (opcua_variable.find("value") != opcua_variable.end())
-			sub->getClient()->getHttpClient()->sendJSON("/opcuavariables", HTTP_POST, opcua_variable);
+		// POST the variable to REST
+		if (jsonThis.find("value") != jsonThis.end())
+			sub->getClient()->getHttpClient()->sendJSON("/opcuavariables", HTTP_POST, jsonThis);
 
-		// Log the variable
+		// Log the variable in verbose mode
 		if (sub->getClient()->getHttpClient()->isVerbose())
-			LOG("OPCUA_Variable: %s\n", UA_DateTime_now(), opcua_variable.dump().c_str());
+			LOG("OPCUA_Variable: %s\n", UA_DateTime_now(), jsonThis.dump().c_str());
 	}
 
 	OPCUA_Subscription::OPCUA_Subscription(
-		OPCUA_Client * client,
-		UA_NodeId * nodeId,
-		int32_t serverId
+		OPCUA_Client * const client,
+		UA_NodeId * const nodeId
 	) :
+		m_client(client),
+		m_nodeId(new UA_NodeId(*nodeId)),
 		m_identifier((char *)nodeId->identifier.byteString.data),
 		m_nsIndex(nodeId->namespaceIndex),
-		m_client(client),
-		m_status(UA_STATUSCODE_GOOD),
 		m_id(0),
-		m_nodeId(new UA_NodeId(*nodeId)),
-		m_monitoredItemId(0),
-		m_serverId(serverId)
+		m_monitoredItemId(0)
 	{
-		LOG("OPCUA_Subscription init. Identifier: %s, ServerId: %d\n", UA_DateTime_now(), m_identifier.c_str(), m_serverId);
+		// Get config strings as JSON objects
+		json jsonCfg = json::parse(m_client->getJsonConfig());
+		json jsonDbServersCfg = json::parse(m_client->getJsonDbServersConfig());
+		json jsonDbSubscriptionsCfg = json::parse(m_client->getJsonDbSubscriptionsConfig());
 
-		m_status = UA_Client_Subscriptions_new(m_client->getClient(), *OPCUA_SubscriptionSettings, &m_id);
+		// Fetch subscription configuration
+		UA_SubscriptionSettings configuration =
+		{
+			m_client->getSubPublishInterval(),	// requestedPublishingInterval
+			10000,								// requestedLifetimeCount
+			1,									// requestedMaxKeepAliveCount
+			10,									// maxNotificationsPerPublish
+			true,								// publishingEnabled
+			m_client->getSubPublishPriority()	// priority
+		};
 
-		if (m_status != UA_STATUSCODE_GOOD)
-			throw std::exception("OPCUA_Subscription something went wrong while creating the object.");
+		// Create UA_Subscription instance
+		m_client->getStatus() = UA_Client_Subscriptions_new(m_client->getClient(), configuration, &m_id);
 
-		m_status = UA_Client_Subscriptions_addMonitoredItem(m_client->getClient(), m_id, *m_nodeId, UA_ATTRIBUTEID_VALUE, &OPCUA_Callback_MonitoredItem, (void *) this, &m_monitoredItemId);
+		// Throw if creation failed
+		if (m_client->getStatus() != UA_STATUSCODE_GOOD)
+			throw std::exception("OPCUA_Subscription something went wrong while creating the UA_Subscription instance.");
 
-		if (m_status != UA_STATUSCODE_GOOD)
+		// Create the subscription request
+		m_client->getStatus() = UA_Client_Subscriptions_addMonitoredItem(m_client->getClient(), m_id, *m_nodeId, UA_ATTRIBUTEID_VALUE, &OPCUA_Callback_MonitoredItem, (void *) this, &m_monitoredItemId);
+
+		// Throw if subscription failed
+		if (m_client->getStatus() != UA_STATUSCODE_GOOD)
 			throw std::exception("OPCUA_Subscription something went wrong while creating the subscription link.");
 
-		LOG("OPCUA_Subscription was created. Id: %d\n", UA_DateTime_now(), m_id);
+		LOG("OPCUA_Subscription serverId(%d) was linked successfully, id: %d\n", UA_DateTime_now(), m_client->getServerId(), m_identifier.c_str(), m_id);
+
+		// Create a JSON instance
+		json jsonThis;
+		jsonThis["identifier"] = m_identifier;
+		jsonThis["nsIndex"] = m_nsIndex;
+		jsonThis["serverId"] = m_client->getServerId();
+
+		// POST the subscription to REST
+		m_client->getHttpClient()->sendJSON("/opcuasubscriptions", HTTP_POST, jsonThis);
+
+		LOG("OPCUA_Subscription serverId(%d) was initialized successfully, identifier: %s\n", UA_DateTime_now(), m_client->getServerId(), m_identifier.c_str());
+
 	}
 
 	OPCUA_Subscription::~OPCUA_Subscription()
@@ -140,17 +162,22 @@ namespace gateway
 		{
 			UA_Client_Subscriptions_remove(m_client->getClient(), m_id);
 
-			LOG("OPCUA_Subscription was destroyed. Id: %d, ServerId: %d\n", UA_DateTime_now(), m_id, m_serverId);
+			LOG("OPCUA_Subscription id(%d) serverId(%d) was destroyed.\n", UA_DateTime_now(), m_id, m_client->getServerId());
 		}
 		else
 		{
-			WRN("OPCUA_Subscription was destroyed. Unattached instance, client was NULL.\n");
+			WRN("OPCUA_Subscription id(%d) serverId(%d) was destroyed, m_client was NULL!\n", UA_DateTime_now(), m_id, m_client->getServerId());
 		}
 	}
 
 	OPCUA_Client * OPCUA_Subscription::getClient()
 	{
 		return m_client;
+	}
+
+	UA_NodeId * OPCUA_Subscription::getNodeId()
+	{
+		return m_nodeId;
 	}
 
 	std::string OPCUA_Subscription::getIdentifier() const
@@ -163,16 +190,6 @@ namespace gateway
 		return m_nsIndex;
 	}
 
-	UA_StatusCode OPCUA_Subscription::getStatus() const
-	{
-		return m_status;
-	}
-
-	UA_NodeId * OPCUA_Subscription::getNodeId()
-	{
-		return m_nodeId;
-	}
-
 	uint32_t OPCUA_Subscription::getId() const
 	{
 		return m_id;
@@ -181,11 +198,6 @@ namespace gateway
 	uint32_t OPCUA_Subscription::getMonitoredItemId() const
 	{
 		return m_monitoredItemId;
-	}
-
-	int32_t OPCUA_Subscription::getServerId() const
-	{
-		return m_serverId;
 	}
 
 }
