@@ -105,7 +105,7 @@ namespace gateway
 				subscribeToAll(nsIndex, &identifier[0u]);
 		}
 
-		LOG("OPCUA_Client serverId(%d) initialized successfully.", UA_DateTime_now(), m_serverId);
+		LOG("OPCUA_Client serverId(%d) initialized successfully.\n", UA_DateTime_now(), m_serverId);
 
 	}
 

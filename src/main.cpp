@@ -98,7 +98,7 @@ int main(int argc, char * argv[])
 		for (OPCUA_Client * c : gateway_opcua_clients)
 		{
 			c->update();
-
+			
 			gateway_opcua_status = c->getStatus();
 		}
 

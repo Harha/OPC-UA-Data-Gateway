@@ -51,42 +51,82 @@ namespace gateway
 			case UA_TYPES_STRING:
 			{
 				jsonThis["value"] = (*(UA_String *)value->value.data).data;
+				jsonThis["type"] = "string";
 			} break;
 			case UA_TYPES_BYTESTRING:
 			{
 				jsonThis["value"] = (*(UA_ByteString *)value->value.data).data;
+				jsonThis["type"] = "string";
+			} break;
+			case UA_TYPES_LOCALIZEDTEXT:
+			{
+				jsonThis["value"] = (*(UA_LocalizedText *)value->value.data).text.data;
+				jsonThis["type"] = "string";
+			} break;
+			case UA_TYPES_DATETIME:
+			{
+				jsonThis["value"] = UADateTimeToJSONDateTime(*(UA_DateTime *)value->value.data);
+				jsonThis["type"] = "datetime";
 			} break;
 			case UA_TYPES_BOOLEAN:
 			{
 				jsonThis["value"] = *(UA_Boolean *)value->value.data == UA_TRUE ? true : false;
+				jsonThis["type"] = "bool";
+			} break;
+			case UA_TYPES_STATUSCODE:
+			{
+				jsonThis["value"] = *(UA_UInt32 *)value->value.data;
+				jsonThis["type"] = "uint32_t";
+			} break;
+			case UA_TYPES_SBYTE:
+			{
+				jsonThis["value"] = *(UA_SByte *)value->value.data;
+				jsonThis["type"] = "int8_t";
 			} break;
 			case UA_TYPES_INT16:
 			{
 				jsonThis["value"] = *(UA_Int16 *)value->value.data;
+				jsonThis["type"] = "int16_t";
 			} break;
 			case UA_TYPES_INT32:
 			{
 				jsonThis["value"] = *(UA_Int32 *)value->value.data;
+				jsonThis["type"] = "int32_t";
 			} break;
 			case UA_TYPES_INT64:
 			{
 				jsonThis["value"] = *(UA_Int64 *)value->value.data;
+				jsonThis["type"] = "int64_t";
+			} break;
+			case UA_TYPES_BYTE:
+			{
+				jsonThis["value"] = *(UA_Byte *)value->value.data;
+				jsonThis["type"] = "uint8_t";
 			} break;
 			case UA_TYPES_UINT16:
 			{
 				jsonThis["value"] = *(UA_UInt16 *)value->value.data;
+				jsonThis["type"] = "uint16_t";
 			} break;
 			case UA_TYPES_UINT32:
 			{
 				jsonThis["value"] = *(UA_UInt32 *)value->value.data;
+				jsonThis["type"] = "uint32_t";
 			} break;
 			case UA_TYPES_UINT64:
 			{
 				jsonThis["value"] = *(UA_UInt64 *)value->value.data;
+				jsonThis["type"] = "uint64_t";
 			} break;
 			case UA_TYPES_FLOAT:
 			{
 				jsonThis["value"] = *(UA_Float *)value->value.data;
+				jsonThis["type"] = "float";
+			} break;
+			case UA_TYPES_DOUBLE:
+			{
+				jsonThis["value"] = *(UA_Double *)value->value.data;
+				jsonThis["type"] = "double";
 			} break;
 			}
 		}
@@ -147,6 +187,7 @@ namespace gateway
 		json jsonThis;
 		jsonThis["identifier"] = m_identifier;
 		jsonThis["nsIndex"] = m_nsIndex;
+		jsonThis["type"] = "NOT_IMPLEMENTED";
 		jsonThis["serverId"] = m_client->getServerId();
 
 		// POST the subscription to REST
