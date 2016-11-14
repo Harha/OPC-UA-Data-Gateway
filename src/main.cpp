@@ -66,7 +66,8 @@ int main(int argc, char * argv[])
 	gateway_db_subscriptions = gateway_http_client->getJSON("/opcuasubscriptions");
 
 	// TODO: Do not delete all subscriptions from db initially and instead update/insert them
-	gateway_http_client->sendREQ("/opcuasubscriptions", HTTP_DELETE);
+	// NOTE: Done!
+	//gateway_http_client->sendREQ("/opcuasubscriptions", HTTP_DELETE);
 
 	try
 	{
@@ -98,7 +99,7 @@ int main(int argc, char * argv[])
 		for (OPCUA_Client * c : gateway_opcua_clients)
 		{
 			c->update();
-			
+
 			gateway_opcua_status = c->getStatus();
 		}
 

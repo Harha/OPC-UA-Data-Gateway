@@ -190,8 +190,12 @@ namespace gateway
 		jsonThis["type"] = "NOT_IMPLEMENTED";
 		jsonThis["serverId"] = m_client->getServerId();
 
-		// POST the subscription to REST
-		m_client->getHttpClient()->sendJSON("/opcuasubscriptions", HTTP_POST, jsonThis);
+		// GET target subscription from REST
+		json jsonDbSubscription = m_client->getHttpClient()->getJSON("/opcuasubscriptions/" + std::to_string(m_nsIndex) + "/?identifier=" + m_identifier + "&serverId=" + std::to_string(m_client->getServerId()));
+
+		// POST or PUT target subscription to REST
+		HTTP_Request_t http_req = (jsonDbSubscription.empty() == false) ? HTTP_PUT : HTTP_POST;
+		m_client->getHttpClient()->sendJSON("/opcuasubscriptions", http_req, jsonThis);
 
 		LOG("OPCUA_Subscription serverId(%d) was initialized successfully, identifier: %s\n", UA_DateTime_now(), m_client->getServerId(), m_identifier.c_str());
 
