@@ -10,6 +10,7 @@
     {
       "serverId": 10,
       "endpoint": "opc.tcp://harha-Laptop:48050",
+	  "identifier": "Beckhoff OPC UA, Toni Laptop",
       "username": "",
       "password": "",
       "subPublishInterval": 10,
@@ -18,7 +19,7 @@
         {
           "isFolder": true,
           "nsIndex": 8,
-          "identifier": "MAIN"
+          "identifiers": ["MAIN"]
         }
       ]
     }

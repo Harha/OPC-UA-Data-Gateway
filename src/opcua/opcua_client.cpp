@@ -93,16 +93,20 @@ namespace gateway
 
 		// Subscribe to all namespaces / nodes described in config
 		size_t n_subscriptions = jsonCfg["subscriptions"].size();
-		for (size_t j = 0; j < n_subscriptions; j++)
+		for (size_t i = 0; i < n_subscriptions; i++)
 		{
-			bool isFolder = jsonCfg["subscriptions"][j]["isFolder"].get<bool>();
-			uint16_t nsIndex = jsonCfg["subscriptions"][j]["nsIndex"].get<uint16_t>();
-			std::string identifier = jsonCfg["subscriptions"][j]["identifier"].get<std::string>();
+			bool isFolder = jsonCfg["subscriptions"][i]["isFolder"].get<bool>();
+			uint16_t nsIndex = jsonCfg["subscriptions"][i]["nsIndex"].get<uint16_t>();
 
-			if (isFolder == false)
-				subscribeToOne(nsIndex, &identifier[0u]);
-			else
-				subscribeToAll(nsIndex, &identifier[0u]);
+			size_t n_identifiers = jsonCfg["subscriptions"][i]["identifiers"].size();
+			for (size_t j = 0; j < n_identifiers; j++)
+			{
+				std::string identifier = jsonCfg["subscriptions"][i]["identifiers"][j].get<std::string>();
+				if (isFolder == false)
+					subscribeToOne(nsIndex, &identifier[0u]);
+				else
+					subscribeToAll(nsIndex, &identifier[0u]);
+			}
 		}
 
 		LOG("OPCUA_Client serverId(%d) initialized successfully.\n", UA_DateTime_now(), m_serverId);
