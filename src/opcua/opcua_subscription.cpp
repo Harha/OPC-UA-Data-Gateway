@@ -50,17 +50,20 @@ namespace gateway
 			{
 			case UA_TYPES_STRING:
 			{
-				jsonThis["value"] = (*(UA_String *)value->value.data).data;
+				UA_String value_str = *(UA_String *)value->value.data;
+				jsonThis["value"] = std::string(value_str.data, value_str.data + value_str.length);
 				jsonThis["type"] = "string";
 			} break;
 			case UA_TYPES_BYTESTRING:
 			{
-				jsonThis["value"] = (*(UA_ByteString *)value->value.data).data;
+				UA_ByteString value_str = *(UA_ByteString *)value->value.data;
+				jsonThis["value"] = std::string(value_str.data, value_str.data + value_str.length);
 				jsonThis["type"] = "string";
 			} break;
 			case UA_TYPES_LOCALIZEDTEXT:
 			{
-				jsonThis["value"] = (*(UA_LocalizedText *)value->value.data).text.data;
+				UA_String value_str = (*(UA_LocalizedText *)value->value.data).text;
+				jsonThis["value"] = std::string(value_str.data, value_str.data + value_str.length);
 				jsonThis["type"] = "string";
 			} break;
 			case UA_TYPES_DATETIME:
@@ -146,7 +149,7 @@ namespace gateway
 	) :
 		m_client(client),
 		m_nodeId(new UA_NodeId(*nodeId)),
-		m_identifier((char *)nodeId->identifier.byteString.data),
+		m_identifier(nodeId->identifier.string.data, nodeId->identifier.string.data + nodeId->identifier.string.length),
 		m_nsIndex(nodeId->namespaceIndex),
 		m_id(0),
 		m_monitoredItemId(0)
