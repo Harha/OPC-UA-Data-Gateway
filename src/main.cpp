@@ -27,16 +27,6 @@ static HTTP_Client * gateway_http_client;
 static json gateway_db_servers;
 static json gateway_db_subscriptions;
 
-static UA_SubscriptionSettings gateway_subscription_settings =
-{
-	100.0,	// requestedPublishingInterval
-	10000,	// requestedLifetimeCount
-	1,		// requestedMaxKeepAliveCount
-	10,		// maxNotificationsPerPublish
-	true,	// publishingEnabled
-	1		// priority
-};
-
 int main(int argc, char * argv[])
 {
 	// Read settings in JSON format
@@ -59,15 +49,11 @@ int main(int argc, char * argv[])
 	bool rest_verbose = gateway_settings["ua_rest_config"]["verbose"].get<bool>();
 
 	// Initialize HTTP client
-	gateway_http_client = new HTTP_Client(rest_endpoint, rest_username, rest_password, rest_output, rest_verbose);
+	gateway_http_client = new HTTP_Client(gateway_settings["ua_rest_config"].dump());
 
 	// Get list of servers and subscriptions from db
 	gateway_db_servers = gateway_http_client->getJSON("/opcuaservers");
 	gateway_db_subscriptions = gateway_http_client->getJSON("/opcuasubscriptions");
-
-	// TODO: Do not delete all subscriptions from db initially and instead update/insert them
-	// NOTE: Done!
-	//gateway_http_client->sendREQ("/opcuasubscriptions", HTTP_DELETE);
 
 	try
 	{

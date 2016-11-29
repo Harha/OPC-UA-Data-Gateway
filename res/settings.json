@@ -1,8 +1,8 @@
 {
   "ua_rest_config": {
     "endpoint": "http://harha.us.to:9090",
-    "username": "",
-    "password": "",
+    "username": "opc_ua_data_rest_admin",
+    "password": "password",
     "output": "./res/libcurl_log.log",
     "verbose":  false
   },

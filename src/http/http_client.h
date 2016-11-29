@@ -1,9 +1,22 @@
 #ifndef CLIENT_HTTP_H
 #define CLIENT_HTTP_H
 
-#include <string>
+#include <iostream>
 #include <fstream>
+#include <string>
+#include <curl_easy.h>
+#include <curl_ios.h>
+#include <curl_exception.h>
+#include <curl_header.h>
 #include "../3rdparty/json.hpp"
+
+// For convenience
+using json = nlohmann::json;
+using curl::curl_easy;
+using curl::curl_ios;
+using curl::curl_easy_exception;
+using curl::curlcpp_traceback;
+using curl::curl_header;
 
 namespace gateway
 {
@@ -20,11 +33,7 @@ namespace gateway
 	{
 	public:
 		HTTP_Client(
-			const std::string & endpoint = "http://localhost:9090",
-			const std::string & username = "",
-			const std::string & password = "",
-			const std::string & output = "./res/libcurl_log.log",
-			bool verbose = true
+			const std::string & jsonConfig
 		);
 		~HTTP_Client();
 		nlohmann::json getJSON(const std::string & path);
@@ -32,11 +41,15 @@ namespace gateway
 		void sendREQ(const std::string & path, HTTP_Request_t request);
 		bool isVerbose() const;
 	private:
+		std::string m_jsonConfig;
 		std::string m_endpoint;
 		std::string m_username;
 		std::string m_password;
 		std::ofstream m_outputFile;
 		bool m_verbose;
+		std::ostringstream m_curlOutStream;
+		curl_ios<std::ostringstream> m_curlOutWriter;
+		curl::curl_easy m_curl;
 	};
 
 }
