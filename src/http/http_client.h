@@ -47,9 +47,6 @@ namespace gateway
 		std::string m_password;
 		std::ofstream m_outputFile;
 		bool m_verbose;
-		std::ostringstream m_curlOutStream;
-		curl_ios<std::ostringstream> m_curlOutWriter;
-		curl::curl_easy m_curl;
 	};
 
 }
