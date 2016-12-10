@@ -1,10 +1,13 @@
 {
+  "ua_service_config": {
+    "quit_on_error":  true
+  },
   "ua_rest_config": {
     "endpoint": "http://harha.us.to:9090",
     "username": "opc_ua_data_rest_admin",
     "password": "password",
     "output": "./res/libcurl_log.log",
-    "verbose":  false
+    "verbose": false
   },
   "ua_client_config": [
     {
@@ -19,7 +22,7 @@
         {
           "isFolder": true,
           "nsIndex": 6,
-          "identifiers": ["MAIN"]
+          "identifiers": [ "MAIN" ]
         }
       ]
     }

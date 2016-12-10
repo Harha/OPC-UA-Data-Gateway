@@ -78,16 +78,24 @@ int main(int argc, char * argv[])
 		ERR("Exception: %s\n", UA_DateTime_now(), e.what());
 	}
 
+	// Runtime service config properties
+	bool quit_on_error = gateway_settings["ua_service_config"]["quit_on_error"].get<bool>();
+
 	// Main loop, exit if an error occurs
-	while (gateway_opcua_status == UA_STATUSCODE_GOOD)
+	while (true)
 	{
 		// Iterate through all clients
 		for (OPCUA_Client * c : gateway_opcua_clients)
 		{
 			c->update();
-
 			gateway_opcua_status = c->getStatus();
+
+			if (gateway_opcua_status != UA_STATUSCODE_GOOD && quit_on_error)
+				break;
 		}
+
+		if (gateway_opcua_status != UA_STATUSCODE_GOOD && quit_on_error || gateway_opcua_clients.size() == 0 && quit_on_error)
+			break;
 
 		// Sleep for a bit, just to keep the OS sane
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));

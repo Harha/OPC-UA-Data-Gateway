@@ -30,9 +30,9 @@ Currently the repository includes a visual studio 2015 project. In the future th
 Configuration
 -------------
 - ./res/settings.json
-
-- ua_rest_config		(HTTP Client configuration)
-- ua_client_config		(Array of OPC UA Client objects)
+- ua_service_config
+- ua_rest_config
+- ua_client_config
 
 Licenses
 --------
