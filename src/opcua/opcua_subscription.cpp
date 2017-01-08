@@ -162,12 +162,12 @@ namespace gateway
 		// Fetch subscription configuration
 		UA_SubscriptionSettings configuration =
 		{
-			m_client->getSubPublishInterval(),	// requestedPublishingInterval
-			10000,								// requestedLifetimeCount
-			1,									// requestedMaxKeepAliveCount
-			10,									// maxNotificationsPerPublish
-			true,								// publishingEnabled
-			m_client->getSubPublishPriority()	// priority
+			m_client->getSubPublishInterval(),				// requestedPublishingInterval
+			m_client->getSubLifetimeCount(),				// requestedLifetimeCount
+			m_client->getSubMaxKeepAliveCount(),			// requestedMaxKeepAliveCount
+			m_client->getSubMaxNotificationsPerPublish(),	// maxNotificationsPerPublish
+			m_client->isSubPublishEnabled(),				// publishingEnabled
+			m_client->getSubPublishPriority()				// priority
 		};
 
 		// Create UA_Subscription instance

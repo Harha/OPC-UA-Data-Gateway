@@ -6,7 +6,7 @@
     "endpoint": "http://harha.us.to:9090",
     "username": "opc_ua_data_rest_admin",
     "password": "password",
-    "output": "./res/libcurl_log.log",
+    "output": "./res/libcurl.log",
     "verbose": false
   },
   "ua_client_config": [
@@ -16,8 +16,12 @@
       "identifier": "Beckhoff OPC UA, Toni Laptop",
       "username": "",
       "password": "",
-      "subPublishInterval": 10,
-      "subPublishPriority": 1,
+      "subPublishInterval": 100.0,
+      "subLifetimeCount": 10000,
+      "subMaxKeepAliveCount": 5,
+      "subMaxNotificationsPerPublish": 10,
+      "subPublishEnabled": true,
+      "subPublishPriority": 0,
       "subscriptions": [
         {
           "isFolder": true,

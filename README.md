@@ -37,6 +37,11 @@ Configuration
 	* ua_rest_config
 	* ua_client_config
 
+Structure
+---------
+![UML Diagram, simplified](images/uml-diagram.png "Rough UML diagram")
+_a Simplified UML-diagram demonstrating the communication between objects in the service._
+
 Licenses
 --------
 1. This software: LICENSE

@@ -88,12 +88,13 @@ int main(int argc, char * argv[])
 		for (OPCUA_Client * c : gateway_opcua_clients)
 		{
 			c->update();
-			gateway_opcua_status = c->getStatus();
 
-			if (gateway_opcua_status != UA_STATUSCODE_GOOD && quit_on_error)
+			// Break if error happened and quit_on_error is true
+			if ((gateway_opcua_status = c->getStatus()) != UA_STATUSCODE_GOOD && quit_on_error)
 				break;
 		}
 
+		// Exit if error happened and quit_on_error is true
 		if (gateway_opcua_status != UA_STATUSCODE_GOOD && quit_on_error || gateway_opcua_clients.size() == 0 && quit_on_error)
 			break;
 

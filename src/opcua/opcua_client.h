@@ -40,6 +40,10 @@ namespace gateway
 		std::string getUsername() const;
 		std::string getPassword() const;
 		double getSubPublishInterval() const;
+		uint32_t getSubLifetimeCount() const;
+		uint32_t getSubMaxKeepAliveCount() const;
+		uint32_t getSubMaxNotificationsPerPublish() const;
+		bool isSubPublishEnabled() const;
 		uint8_t getSubPublishPriority() const;
 		std::vector<OPCUA_Subscription *> & getSubscriptions();
 	private:
@@ -54,6 +58,10 @@ namespace gateway
 		std::string m_username;
 		std::string m_password;
 		double m_subPublishInterval;
+		uint32_t m_subLifetimeCount;
+		uint32_t m_subMaxKeepAliveCount;
+		uint32_t m_subMaxNotificationsPerPublish;
+		bool m_subPublishEnabled;
 		uint8_t m_subPublishPriority;
 		std::vector<OPCUA_Subscription *> m_subscriptions;
 	};

@@ -51,6 +51,10 @@ namespace gateway
 		m_username(""),
 		m_password(""),
 		m_subPublishInterval(10.0),
+		m_subLifetimeCount(10000),
+		m_subMaxKeepAliveCount(1),
+		m_subMaxNotificationsPerPublish(10),
+		m_subPublishEnabled(true),
 		m_subPublishPriority(1),
 		m_subscriptions()
 	{
@@ -65,6 +69,10 @@ namespace gateway
 		m_username = jsonCfg["username"].get<std::string>();
 		m_password = jsonCfg["password"].get<std::string>();
 		m_subPublishInterval = jsonCfg["subPublishInterval"].get<double>();
+		m_subLifetimeCount = jsonCfg["subLifetimeCount"].get<uint32_t>();
+		m_subMaxKeepAliveCount = jsonCfg["subMaxKeepAliveCount"].get<uint32_t>();
+		m_subMaxNotificationsPerPublish = jsonCfg["subMaxNotificationsPerPublish"].get<uint32_t>();
+		m_subPublishEnabled = jsonCfg["subPublishEnabled"].get<bool>();
 		m_subPublishPriority = jsonCfg["subPublishPriority"].get<uint8_t>();
 
 		// Create UA_Client instance
@@ -110,7 +118,6 @@ namespace gateway
 		}
 
 		LOG("OPCUA_Client serverId(%d) initialized successfully.\n", UA_DateTime_now(), m_serverId);
-
 	}
 
 	OPCUA_Client::~OPCUA_Client()
@@ -204,6 +211,26 @@ namespace gateway
 	double OPCUA_Client::getSubPublishInterval() const
 	{
 		return m_subPublishInterval;
+	}
+
+	uint32_t OPCUA_Client::getSubLifetimeCount() const
+	{
+		return m_subLifetimeCount;
+	}
+
+	uint32_t OPCUA_Client::getSubMaxKeepAliveCount() const
+	{
+		return m_subMaxKeepAliveCount;
+	}
+
+	uint32_t OPCUA_Client::getSubMaxNotificationsPerPublish() const
+	{
+		return m_subMaxNotificationsPerPublish;
+	}
+
+	bool OPCUA_Client::isSubPublishEnabled() const
+	{
+		return m_subPublishEnabled;
 	}
 
 	uint8_t OPCUA_Client::getSubPublishPriority() const
